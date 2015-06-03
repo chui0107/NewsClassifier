@@ -4,11 +4,13 @@ import re
 from NewsCrawler import NewsCrawler
 from NewsCrawler import NewsHost
 from NewsCrawler import CrawlerQueue
+from NewsRanker import NewsRanker
 
 class NaiveBayes:
 	
-	def __init__(self, path):
-		self.Train(path)
+	def __init__(self, TrainingSetpath, crawlerQueue):
+		self.crawlerQueue = crawlerQueue
+		self.Train(TrainingSetpath)
 				
 	def __Tokenize__(self, news):
 		
@@ -144,11 +146,24 @@ class NaiveBayes:
 				
 				print '%s has been classified as %s\n' % (fileName, className)
 				
-	
-	def Classify(self, tuple):
-		words = self.__TokenizeText__(tuple[0])
+	def __Classify__(self, newsTuple):
+		words = self.__TokenizeText__(newsTuple[0])
 		className = self.__ComputeClass__(words)
-		return (className, tuple[1], tuple[2])
+		return (className, newsTuple[1], newsTuple[2])
+	
+	def Classify(self):
+		
+		while True:
+		
+			self.crawlerQueue.messageQSema.acquire()
+							
+			self.crawlerQueue.messageQLock.acquire()
+		
+			newsTuple = self.crawlerQueue.messageQ.popleft()
+		
+			self.crawlerQueue.messageQLock.release()
+		
+			print self.__Classify__(newsTuple)[0]
 	
 			
 def GetCommondLineInput():
@@ -191,10 +206,11 @@ def main():
 	
 	testSetPath = curPath + '/TestSet/'
 	
-	naiveBayes = NaiveBayes(trainingSetPath)
-	
 	crawlerQueue = CrawlerQueue()
 
+	naiveBayes = NaiveBayes(trainingSetPath, crawlerQueue)
+	
+	
 	newsCrawler = NewsCrawler(crawlerQueue)
 	
 	nyTimes = NewsHost('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2')
@@ -202,12 +218,23 @@ def main():
 	newsCrawler.AddHost(nyTimes)
 	
 	# GetCommondLineInput()
+	
+	newsRanker = NewsRanker(crawlerQueue)
 
+	allThreads = []
+	
 	newsCrawler.Crawl()
 	
-	for i in crawlerQueue.messageQ:
-		print i
+	naiveBayes.Classify()
 	
+	allThreads.append(newsCrawler.GetCrawlerThreads())
+	
+	for threads in allThreads:
+		for thread in threads:
+			thread.join()
+		
+	
+				
 	
 if __name__ == "__main__":
 	main()		

@@ -1,21 +1,23 @@
 import requests
 import threading
-from numpy.f2py.rules import typedef_need_dict
 
 class NewsHost:
-	
 	def __init__(self, url, key, docLink):
 		self.url = url
 		self.apiKey = key
 		self.docLink = docLink
 		
 class CrawlerQueue:
-	 def __init__(self):
-	 	import collections
-	 	# NOTE that collections.deque() is thread-safe
-	 	# https://docs.python.org/2/library/collections.html#collections.deque
-	 	self.messageQ = collections.deque()
-	 	
+	def __init__(self):
+		import collections
+		# NOTE that collections.deque() is thread-safe
+		# https://docs.python.org/2/library/collections.html#collections.deque
+		self.messageQ = collections.deque()
+		self.messageQFillSema = threading.Semaphore()
+		self.messageQEmptySema = threading.Semaphore()
+		self.messageQSema = threading.Semaphore(0)
+		self.messageQLock = threading.Lock()
+		
 class CrawlerThread(threading.Thread):
 		
 		def __init__(self, url, key, crawlerQueue):
@@ -68,8 +70,16 @@ class CrawlerThread(threading.Thread):
 					if doc['headline'] != None and doc['headline']['main'] != None:
 						text = text + doc['headline']['main']
 					
-					self.crawlerQueue.messageQ.append((text, doc['headline']['main'], doc['web_url']))	 	
-
+					try:
+						self.crawlerQueue.messageQLock.acquire()
+						
+						self.crawlerQueue.messageQ.append((text, doc['headline']['main'], doc['web_url']))
+					
+						self.crawlerQueue.messageQSema.release()
+						
+					finally:
+						self.crawlerQueue.messageQLock.release()
+					
 class NewsCrawler:
 			
 	def __init__(self, crawlerQueue):
@@ -81,13 +91,11 @@ class NewsCrawler:
 			
 	def Crawl(self):
 			
-		crawlingThreads = []
+		self.crawlingThreads = []
 	
 		for url in self.hostDict:
-			crawlingThreads.append(CrawlerThread(url, self.hostDict[url], self.crawlerQueue))
-			crawlingThreads[len(crawlingThreads) - 1].start()
+			self.crawlingThreads.append(CrawlerThread(url, self.hostDict[url], self.crawlerQueue))
+			self.crawlingThreads[len(self.crawlingThreads) - 1].start()
 		
-		for crawlingThread in crawlingThreads:
-			crawlingThread.join()
-		
-	
+	def GetCrawlerThreads(self):
+		return self.crawlingThreads	
