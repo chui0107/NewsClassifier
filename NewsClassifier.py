@@ -3,6 +3,7 @@ import json
 import re
 from NewsCrawler import NewsCrawler
 from NewsCrawler import NewsHost
+from NewsCrawler import CrawlerQueue
 
 class NaiveBayes:
 	
@@ -77,7 +78,7 @@ class NaiveBayes:
 				classProb = classProb + math.log(wordProb)
 					
 			classProb = classProb * classPrior
-			# choose the class with max probablity
+			# choose the class with max probability
 			if classProb > classMaxProb:
 				classMaxProb = classProb
 				className = classKey
@@ -124,7 +125,7 @@ class NaiveBayes:
 			
 		self.vocabulary.append(totolWords)
 		
-	def Classify(self, path):
+	def ClassifyFromFiles(self, path):
 		
 		for fileName in os.listdir(path):
 			
@@ -144,11 +145,11 @@ class NaiveBayes:
 				print '%s has been classified as %s\n' % (fileName, className)
 				
 	
-	def Classify(self, text):
-		
-		words = self.__TokenizeText__(text)
-		
+	def Classify(self, tuple):
+		words = self.__TokenizeText__(tuple[0])
 		className = self.__ComputeClass__(words)
+		return (className, tuple[1], tuple[2])
+	
 			
 def GetCommondLineInput():
 	
@@ -192,18 +193,21 @@ def main():
 	
 	naiveBayes = NaiveBayes(trainingSetPath)
 	
-	GetCommondLineInput()
-	
-	newsCrawler = NewsCrawler()
+	crawlerQueue = CrawlerQueue()
+
+	newsCrawler = NewsCrawler(crawlerQueue)
 	
 	nyTimes = NewsHost('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2')
 	
 	newsCrawler.AddHost(nyTimes)
 	
-	articles = newsCrawler.Crawl()
+	# GetCommondLineInput()
+
+	newsCrawler.Crawl()
 	
-	# for article in articles:
-		# naiveBayes.Classify(article)
+	for i in crawlerQueue.messageQ:
+		print i
+	
 	
 if __name__ == "__main__":
 	main()		

@@ -1,5 +1,6 @@
 import requests
 import threading
+from numpy.f2py.rules import typedef_need_dict
 
 class NewsHost:
 	
@@ -7,37 +8,30 @@ class NewsHost:
 		self.url = url
 		self.apiKey = key
 		self.docLink = docLink
-
-class NewsCrawler:
-	
-	def __init__(self):
 		
-		self.hostDict = {}
+class CrawlerQueue:
+	 def __init__(self):
+	 	import collections
+	 	# NOTE that collections.deque() is thread-safe
+	 	# https://docs.python.org/2/library/collections.html#collections.deque
+	 	self.messageQ = collections.deque()
+	 	
+class CrawlerThread(threading.Thread):
+		
+		def __init__(self, url, key, crawlerQueue):
+			threading.Thread.__init__(self)
+			self.url = url
+			self.key = key
+			self.crawlerQueue = crawlerQueue
 			
-	def __SaveNewsInArchive__(self, path):
-		return
-	
-	def AddHost(self, host):
-		
-		url = host.url
-		key = host.apiKey
-		
-		self.hostDict[url] = key
-		
-	def Crawl(self):
-		
-		import re
-		
-		'''
-		
-		{u'status': u'OK', u'response': {u'docs': [], u'meta': {u'hits': 0, u'offset': 0, u'time': 54}}, u'copyright': u'Copyright (c) 2013 The New York Times Company.  All Rights Reserved.'}
-		
-		'''
-		articles = []
-		
-		for url in self.hostDict:
+		def run(self):
 			
-			apiKey = self.hostDict[url]
+			'''
+			{u'status': u'OK', u'response': {u'docs': [], u'meta': {u'hits': 0, u'offset': 0, u'time': 54}}, u'copyright': u'Copyright (c) 2013 The New York Times Company.  All Rights Reserved.'}
+		
+			'''
+			
+			apiKey = self.key
 			
 			keyword = 'business'
 			
@@ -49,12 +43,12 @@ class NewsCrawler:
 			
 			params = {'fq': filterQuery, 'page': page, 'api-key': apiKey}
 			
-			r = requests.get(url + responseFormat, params=params)
+			r = requests.get(self.url + responseFormat, params=params)
 			
 			response = r.json()
 			
 			if response == None:
-				continue
+				return
 			
 			status = response['status']
 			
@@ -74,7 +68,26 @@ class NewsCrawler:
 					if doc['headline'] != None and doc['headline']['main'] != None:
 						text = text + doc['headline']['main']
 					
-					articles.append(text)
+					self.crawlerQueue.messageQ.append((text, doc['headline']['main'], doc['web_url']))	 	
+
+class NewsCrawler:
+			
+	def __init__(self, crawlerQueue):
+		self.crawlerQueue = crawlerQueue
+		self.hostDict = {}
 					
-		return articles
+	def AddHost(self, host):
+		self.hostDict[host.url] = host.apiKey
+			
+	def Crawl(self):
+			
+		crawlingThreads = []
+	
+		for url in self.hostDict:
+			crawlingThreads.append(CrawlerThread(url, self.hostDict[url], self.crawlerQueue))
+			crawlingThreads[len(crawlingThreads) - 1].start()
 		
+		for crawlingThread in crawlingThreads:
+			crawlingThread.join()
+		
+	
