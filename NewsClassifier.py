@@ -1,34 +1,30 @@
 import os
 import json
 import re
-from NewsCrawler import NewsCrawler
-from NewsCrawler import NewsHost
-from NewsCrawler import CrawlerQueue
-from NewsRanker import NewsRanker
 
-class NaiveBayes:
+class NewsClassifier:
 	
 	def __init__(self, TrainingSetpath, crawlerQueue):
+		
+		self.trainingSetpath = TrainingSetpath
 		self.crawlerQueue = crawlerQueue
-		self.Train(TrainingSetpath)
+		self.__Train__(self.trainingSetpath)
+	
+	def __Train__(self, trainingSetpath):
+		return
 				
-	def __Tokenize__(self, news):
-		
-		text = ''
-		
-		for eachnews in news:
-			
-			title = eachnews[1]
-		
-			description = eachnews[2]
-		
-			text += title + description
-		
-		return re.findall('[a-z]+', text.lower())
+	def Classify(self):
+		return
 	
 	def __TokenizeText__(self, text):
 		return re.findall('[a-z]+', text.lower())
+
 	
+class NaiveBayesClassifier(NewsClassifier):
+	
+	def __init__(self, TrainingSetpath, crawlerQueue):
+		NewsClassifier.__init__(self, TrainingSetpath, crawlerQueue)
+				
 	def __PopulateClass__(self, className, words):
 		
 		classes = self.vocabulary[0]
@@ -87,7 +83,7 @@ class NaiveBayes:
 		
 		return className
 			
-	def Train(self, path):
+	def __Train__(self, path):
 		
 		self.vocabulary = []
 		self.vocabulary.append({})
@@ -106,8 +102,18 @@ class NaiveBayes:
 			with open(path + eachClass, 'r') as f:
 					
 				news = json.load(f)
-					
-				words = self.__Tokenize__(news)
+				
+				text = ''
+		
+				for eachnews in news:
+			
+					title = eachnews[1]
+		
+					description = eachnews[2]
+		
+				text += title + description	
+				
+				words = self.__TokenizeText__(text)
 				
 				self.__PopulateClass__(className, words)
 					
@@ -126,26 +132,7 @@ class NaiveBayes:
 			totolWords = totolWords + wordInEachClass
 			
 		self.vocabulary.append(totolWords)
-		
-	def ClassifyFromFiles(self, path):
-		
-		for fileName in os.listdir(path):
-			
-			# class file 
-			extension = fileName[len(fileName) - 4:]
-			if extension != '.txt':
-				continue
-				
-			with open(path + fileName, 'r') as f:
-					
-				news = json.load(f)
-					
-				words = self.__Tokenize__(news)
-								
-				className = self.__ComputeClass__(words)
-				
-				print '%s has been classified as %s\n' % (fileName, className)
-				
+						
 	def __Classify__(self, newsTuple):
 		words = self.__TokenizeText__(newsTuple[0])
 		className = self.__ComputeClass__(words)
@@ -164,77 +151,5 @@ class NaiveBayes:
 			self.crawlerQueue.messageQLock.release()
 		
 			print self.__Classify__(newsTuple)[0]
-	
-			
-def GetCommondLineInput():
-	
-	import readline
-	import shlex
-	
-	print 'Enter a subject of news to browse'
-	print 'To get help, enter `help`.'
-	
-	subjects = frozenset(['business', 'politics', 'entertainment'])
-	
-	while True:
 		
-		inputs = shlex.split(raw_input('Subject: '))
-		if len(inputs) != 1:
-			print 'Only support 1 input at this time'
-			continue
-			
-		cmd = inputs[0].lower()
-		
-		if cmd in subjects:
-			print 'in'
-			continue;
-						
-		if cmd == 'exit':
-			break
 
-		elif cmd == 'help':
-			print 'To be added'
-	
-		else:
-			print('Unknown command: {}'.format(cmd))		 
-				
-def main():
-				
-	curPath = os.getcwd()
-	
-	trainingSetPath = curPath + '/TrainingSet/'
-	
-	testSetPath = curPath + '/TestSet/'
-	
-	crawlerQueue = CrawlerQueue()
-
-	naiveBayes = NaiveBayes(trainingSetPath, crawlerQueue)
-	
-	
-	newsCrawler = NewsCrawler(crawlerQueue)
-	
-	nyTimes = NewsHost('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2')
-	
-	newsCrawler.AddHost(nyTimes)
-	
-	# GetCommondLineInput()
-	
-	newsRanker = NewsRanker(crawlerQueue)
-
-	allThreads = []
-	
-	newsCrawler.Crawl()
-	
-	naiveBayes.Classify()
-	
-	allThreads.append(newsCrawler.GetCrawlerThreads())
-	
-	for threads in allThreads:
-		for thread in threads:
-			thread.join()
-		
-	
-				
-	
-if __name__ == "__main__":
-	main()		
