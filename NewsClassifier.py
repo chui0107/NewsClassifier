@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import threading
 
 class NewsClassifier:
 	
@@ -9,13 +10,18 @@ class NewsClassifier:
 		self.trainingSetpath = TrainingSetpath
 		self.crawlerQueue = crawlerQueue
 		self.__Train__(self.trainingSetpath)
+		self.classifierThreads = []
 	
-	def __Train__(self, trainingSetpath):
-		return
-				
 	def Classify(self):
 		return
 	
+	def GetClassifierThreads(self):
+		return self.classifierThreads
+
+	
+	def __Train__(self, trainingSetpath):
+		return
+					
 	def __TokenizeText__(self, text):
 		return re.findall('[a-z]+', text.lower())
 
@@ -133,23 +139,30 @@ class NaiveBayesClassifier(NewsClassifier):
 			
 		self.vocabulary.append(totolWords)
 						
-	def __Classify__(self, newsTuple):
-		words = self.__TokenizeText__(newsTuple[0])
-		className = self.__ComputeClass__(words)
-		return (className, newsTuple[1], newsTuple[2])
-	
-	def Classify(self):
+	def __Classify__(self):
 		
 		while True:
-		
-			self.crawlerQueue.messageQSema.acquire()
+			
+			# blocking call
+			self.crawlerQueue.messageQSema.acquire(True)
 							
 			self.crawlerQueue.messageQLock.acquire()
 		
 			newsTuple = self.crawlerQueue.messageQ.popleft()
 		
 			self.crawlerQueue.messageQLock.release()
+			
+			words = self.__TokenizeText__(newsTuple[0])
+			
+			className = self.__ComputeClass__(words)
+									
 		
-			print self.__Classify__(newsTuple)[0]
+	def Classify(self):
+				
+		# only one classifying thread for now
+		for i in range(1):
+			self.classifierThreads.append(threading.Thread(target=self.__Classify__))
+			self.classifierThreads[len(self.classifierThreads) - 1].start()
+		
 		
 

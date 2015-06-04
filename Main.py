@@ -47,7 +47,7 @@ def main():
 	
 	crawlerQueue = CrawlerQueue()
 
-	naiveBayesClassifier = NaiveBayesClassifier(trainingSetPath, crawlerQueue)
+	classifier = NaiveBayesClassifier(trainingSetPath, crawlerQueue)
 	
 	newsCrawler = NewsCrawler(crawlerQueue)
 	
@@ -59,21 +59,22 @@ def main():
 	
 	newsRanker = NewsRanker(crawlerQueue)
 
-	allThreads = []
-	
 	newsCrawler.Crawl()
 	
-	naiveBayesClassifier.Classify()
+	classifier.Classify()
+	
+	
+	allThreads = []
 	
 	allThreads.append(newsCrawler.GetCrawlerThreads())
+	
+	allThreads.append(classifier.GetClassifierThreads())
 	
 	for threads in allThreads:
 		for thread in threads:
 			thread.join()
-		
+					
 	
-				
 	
 if __name__ == "__main__":
 	main()		
-

@@ -79,7 +79,8 @@ class CrawlerThread(threading.Thread):
 						
 					finally:
 						self.crawlerQueue.messageQLock.release()
-					
+			
+		
 class NewsCrawler:
 			
 	def __init__(self, crawlerQueue):
