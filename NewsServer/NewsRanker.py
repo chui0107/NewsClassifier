@@ -11,7 +11,6 @@ class NewsRanker:
 		self.rankingAlgorithm = algorithm
 		
 	def __Rank__(self):
-		import time
 		
 		while True:	
 			
