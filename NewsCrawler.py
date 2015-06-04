@@ -1,4 +1,3 @@
-import requests
 import threading
 
 class NewsHost:
@@ -23,6 +22,7 @@ class MessageQueue:
 		self.rankerQLock = threading.Lock()
 		
 		
+'''		
 class CrawlerThread(threading.Thread):
 		
 		def __init__(self, url, key, messageQueue):
@@ -32,65 +32,68 @@ class CrawlerThread(threading.Thread):
 			self.messageQueue = messageQueue
 			
 		def run(self):
+'''			
 			
-			'''
-			{u'status': u'OK', u'response': {u'docs': [], u'meta': {u'hits': 0, u'offset': 0, u'time': 54}}, u'copyright': u'Copyright (c) 2013 The New York Times Company.  All Rights Reserved.'}
-		
-			'''
-			
-			apiKey = self.key
-			
-			keyword = 'business'
-			
-			responseFormat = '.json'
-			
-			filterQuery = 'subject:(' + keyword + ')'
-			
-			page = 0
-			
-			params = {'fq': filterQuery, 'page': page, 'api-key': apiKey}
-			
-			r = requests.get(self.url + responseFormat, params=params)
-			
-			response = r.json()
-			
-			if response == None:
-				return
-			
-			status = response['status']
-			
-			if(status.lower() == 'ok'):
-				
-				docs = response['response']['docs']
-				text = ''
-				
-				# pact news into a text
-				for doc in docs:	
-					if doc['snippet'] != None:						
-						text = text + doc['snippet'] + ' '
-					if doc['lead_paragraph'] != None:
-						text = text + doc['lead_paragraph'] + ' '
-					if doc['abstract'] != None:
-						text = text + doc['abstract'] + ' '
-					if doc['headline'] != None and doc['headline']['main'] != None:
-						text = text + doc['headline']['main']
-					
-					try:
-						self.messageQueue.crawlerQLock.acquire()
-						
-						self.messageQueue.crawlerQ.append((text, doc['headline']['main'], doc['web_url']))
-					
-						self.messageQueue.crawlerQSema.release()
-						
-					finally:
-						self.messageQueue.crawlerQLock.release()
-			
-		
 class NewsCrawler:
 			
 	def __init__(self, messageQueue):
 		self.messageQueue = messageQueue
 		self.hostDict = {}
+	
+	def __Crawl__(self, url, apiKey):
+		import requests
+
+		'''
+			{u'status': u'OK', u'response': {u'docs': [], u'meta': {u'hits': 0, u'offset': 0, u'time': 54}}, u'copyright': u'Copyright (c) 2013 The New York Times Company.  All Rights Reserved.'}
+		
+		'''		
+		keyword = 'business'			
+		responseFormat = '.json'			
+		filterQuery = 'subject:(' + keyword + ')'			
+		page = 0			
+		params = {'fq': filterQuery, 'page': page, 'api-key': apiKey}
+			
+		r = requests.get(url + responseFormat, params=params)
+			
+		response = r.json()
+			
+		if response == None:
+			return
+			
+		status = response['status']
+			
+		if(status.lower() == 'ok'):
+				
+			docs = response['response']['docs']
+			text = ''
+				
+			# pact news into a text
+			for doc in docs:	
+				if doc['snippet'] != None:						
+					text = text + doc['snippet'] + ' '
+				if doc['lead_paragraph'] != None:
+					text = text + doc['lead_paragraph'] + ' '
+				if doc['abstract'] != None:
+					text = text + doc['abstract'] + ' '
+				if doc['headline'] != None and doc['headline']['main'] != None:
+					text = text + doc['headline']['main']		
+				
+				crawlerTuple = (text, doc['headline']['main'], doc['web_url'])
+				
+				self.__FillCrawlerQ__(crawlerTuple)
+					
+	def __FillCrawlerQ__(self, crawlerTuple):
+		
+		try:
+			self.messageQueue.crawlerQLock.acquire()
+					
+			self.messageQueue.crawlerQ.append(crawlerTuple)
+					
+			self.messageQueue.crawlerQSema.release()
+						
+		finally:
+			self.messageQueue.crawlerQLock.release()
+				
 					
 	def AddHost(self, host):
 		self.hostDict[host.url] = host.apiKey
@@ -98,9 +101,9 @@ class NewsCrawler:
 	def Crawl(self):
 			
 		self.crawlingThreads = []
-	
+		
 		for url in self.hostDict:
-			self.crawlingThreads.append(CrawlerThread(url, self.hostDict[url], self.messageQueue))
+			self.crawlingThreads.append(threading.Thread(target=self.__Crawl__, args=(url, self.hostDict[url])))
 			self.crawlingThreads[len(self.crawlingThreads) - 1].start()
 		
 	def GetCrawlerThreads(self):

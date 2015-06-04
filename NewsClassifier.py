@@ -141,7 +141,10 @@ class NaiveBayesClassifier(NewsClassifier):
 	def __Classify__(self):
 		
 		while True:
-			
+			rankerTuple = self.__ExtractCrawlerQ__()
+			self.__FillRankerQ__(rankerTuple)
+	
+	def __ExtractCrawlerQ__(self):
 			# blocking call
 			self.messageQueue.crawlerQSema.acquire(True)
 							
@@ -156,7 +159,7 @@ class NaiveBayesClassifier(NewsClassifier):
 			
 			className = self.__ComputeClass__(words)
 			
-			self.__FillRankerQ__((className, newsTuple[1], newsTuple[2]))
+			return (className, newsTuple[1], newsTuple[2])
 	
 	def __FillRankerQ__(self, rankerTuple):
 	
