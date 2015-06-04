@@ -5,10 +5,10 @@ import threading
 
 class NewsClassifier:
 	
-	def __init__(self, TrainingSetpath, crawlerQueue):
+	def __init__(self, TrainingSetpath, messageQueue):
 		
 		self.trainingSetpath = TrainingSetpath
-		self.crawlerQueue = crawlerQueue
+		self.messageQueue = messageQueue
 		self.__Train__(self.trainingSetpath)
 		self.classifierThreads = []
 	
@@ -143,14 +143,14 @@ class NaiveBayesClassifier(NewsClassifier):
 		while True:
 			
 			# blocking call
-			self.crawlerQueue.crawlerQSema.acquire(True)
+			self.messageQueue.crawlerQSema.acquire(True)
 							
-			self.crawlerQueue.crawlerQLock.acquire()
+			self.messageQueue.crawlerQLock.acquire()
 			
 			# (text,headline,url)
-			newsTuple = self.crawlerQueue.crawlerQ.popleft()
+			newsTuple = self.messageQueue.crawlerQ.popleft()
 		
-			self.crawlerQueue.crawlerQLock.release()
+			self.messageQueue.crawlerQLock.release()
 			
 			words = self.__TokenizeText__(newsTuple[0])
 			
@@ -161,14 +161,14 @@ class NaiveBayesClassifier(NewsClassifier):
 	def __FillRankerQ__(self, rankerTuple):
 	
 		try:
-			self.crawlerQueue.rankerQLock.acquire()
+			self.messageQueue.rankerQLock.acquire()
 						
-			self.crawlerQueue.rankerQ.append(rankerTuple)
+			self.messageQueue.rankerQ.append(rankerTuple)
 					
-			self.crawlerQueue.rankerQSema.release()
+			self.messageQueue.rankerQSema.release()
 						
 		finally:
-			self.crawlerQueue.rankerQLock.release()
+			self.messageQueue.rankerQLock.release()
 			
 			
 	def Classify(self):

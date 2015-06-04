@@ -1,8 +1,8 @@
 class NewsRanker:
 	
-	def __init__(self, crawlerQueue):
+	def __init__(self, messageQueue):
 		self.newsDict = {}
-		self.crawlerQueue = crawlerQueue
+		self.messageQueue = messageQueue
 		self.rankedNews = {}
 		
 	def Rank(self):

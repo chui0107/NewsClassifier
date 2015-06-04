@@ -1,7 +1,7 @@
 import os
 from NewsCrawler import NewsCrawler
 from NewsCrawler import NewsHost
-from NewsCrawler import CrawlerQueue
+from NewsCrawler import MessageQueue
 from NewsRanker import NewsRanker
 from NewsClassifier import NaiveBayesClassifier
 
@@ -45,11 +45,11 @@ def main():
 	
 	testSetPath = curPath + '/TestSet/'
 	
-	crawlerQueue = CrawlerQueue()
+	messageQueue = MessageQueue()
 
-	classifier = NaiveBayesClassifier(trainingSetPath, crawlerQueue)
+	classifier = NaiveBayesClassifier(trainingSetPath, messageQueue)
 	
-	newsCrawler = NewsCrawler(crawlerQueue)
+	newsCrawler = NewsCrawler(messageQueue)
 	
 	nyTimes = NewsHost('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2')
 	
@@ -57,7 +57,7 @@ def main():
 	
 	# GetCommondLineInput()
 	
-	newsRanker = NewsRanker(crawlerQueue)
+	newsRanker = NewsRanker(messageQueue)
 
 	newsCrawler.Crawl()
 	

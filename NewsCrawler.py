@@ -7,7 +7,7 @@ class NewsHost:
 		self.apiKey = key
 		self.docLink = docLink
 		
-class CrawlerQueue:
+class MessageQueue:
 	def __init__(self):
 		import collections
 		# NOTE that collections.deque() is thread-safe
@@ -25,11 +25,11 @@ class CrawlerQueue:
 		
 class CrawlerThread(threading.Thread):
 		
-		def __init__(self, url, key, crawlerQueue):
+		def __init__(self, url, key, messageQueue):
 			threading.Thread.__init__(self)
 			self.url = url
 			self.key = key
-			self.crawlerQueue = crawlerQueue
+			self.messageQueue = messageQueue
 			
 		def run(self):
 			
@@ -76,20 +76,20 @@ class CrawlerThread(threading.Thread):
 						text = text + doc['headline']['main']
 					
 					try:
-						self.crawlerQueue.crawlerQLock.acquire()
+						self.messageQueue.crawlerQLock.acquire()
 						
-						self.crawlerQueue.crawlerQ.append((text, doc['headline']['main'], doc['web_url']))
+						self.messageQueue.crawlerQ.append((text, doc['headline']['main'], doc['web_url']))
 					
-						self.crawlerQueue.crawlerQSema.release()
+						self.messageQueue.crawlerQSema.release()
 						
 					finally:
-						self.crawlerQueue.crawlerQLock.release()
+						self.messageQueue.crawlerQLock.release()
 			
 		
 class NewsCrawler:
 			
-	def __init__(self, crawlerQueue):
-		self.crawlerQueue = crawlerQueue
+	def __init__(self, messageQueue):
+		self.messageQueue = messageQueue
 		self.hostDict = {}
 					
 	def AddHost(self, host):
@@ -100,7 +100,7 @@ class NewsCrawler:
 		self.crawlingThreads = []
 	
 		for url in self.hostDict:
-			self.crawlingThreads.append(CrawlerThread(url, self.hostDict[url], self.crawlerQueue))
+			self.crawlingThreads.append(CrawlerThread(url, self.hostDict[url], self.messageQueue))
 			self.crawlingThreads[len(self.crawlingThreads) - 1].start()
 		
 	def GetCrawlerThreads(self):
