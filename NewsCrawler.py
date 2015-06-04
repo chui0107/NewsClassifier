@@ -20,20 +20,7 @@ class MessageQueue:
 		# set the initial value of the semaphore to be 0
 		self.rankerQSema = threading.Semaphore(0)
 		self.rankerQLock = threading.Lock()
-		
-		
-'''		
-class CrawlerThread(threading.Thread):
-		
-		def __init__(self, url, key, messageQueue):
-			threading.Thread.__init__(self)
-			self.url = url
-			self.key = key
-			self.messageQueue = messageQueue
-			
-		def run(self):
-'''			
-			
+					
 class NewsCrawler:
 			
 	def __init__(self, messageQueue):

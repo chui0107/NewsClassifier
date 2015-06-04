@@ -1,7 +1,6 @@
 import os
 import json
 import re
-import threading
 
 class NewsClassifier:
 	
@@ -175,7 +174,8 @@ class NaiveBayesClassifier(NewsClassifier):
 			
 			
 	def Classify(self):
-				
+		import threading
+		
 		# only one classifying thread for now
 		for i in range(1):
 			self.classifierThreads.append(threading.Thread(target=self.__Classify__))
