@@ -63,7 +63,6 @@ def main():
 	
 	classifier.Classify()
 	
-	
 	allThreads = []
 	
 	allThreads.append(newsCrawler.GetCrawlerThreads())

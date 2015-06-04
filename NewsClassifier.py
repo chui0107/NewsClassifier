@@ -24,7 +24,6 @@ class NewsClassifier:
 					
 	def __TokenizeText__(self, text):
 		return re.findall('[a-z]+', text.lower())
-
 	
 class NaiveBayesClassifier(NewsClassifier):
 	
@@ -144,19 +143,34 @@ class NaiveBayesClassifier(NewsClassifier):
 		while True:
 			
 			# blocking call
-			self.crawlerQueue.messageQSema.acquire(True)
+			self.crawlerQueue.crawlerQSema.acquire(True)
 							
-			self.crawlerQueue.messageQLock.acquire()
+			self.crawlerQueue.crawlerQLock.acquire()
+			
+			# (text,headline,url)
+			newsTuple = self.crawlerQueue.crawlerQ.popleft()
 		
-			newsTuple = self.crawlerQueue.messageQ.popleft()
-		
-			self.crawlerQueue.messageQLock.release()
+			self.crawlerQueue.crawlerQLock.release()
 			
 			words = self.__TokenizeText__(newsTuple[0])
 			
 			className = self.__ComputeClass__(words)
-									
-		
+			
+			self.__FillRankerQ__((className, newsTuple[1], newsTuple[2]))
+	
+	def __FillRankerQ__(self, rankerTuple):
+	
+		try:
+			self.crawlerQueue.rankerQLock.acquire()
+						
+			self.crawlerQueue.rankerQ.append(rankerTuple)
+					
+			self.crawlerQueue.rankerQSema.release()
+						
+		finally:
+			self.crawlerQueue.rankerQLock.release()
+			
+			
 	def Classify(self):
 				
 		# only one classifying thread for now

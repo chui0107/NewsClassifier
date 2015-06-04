@@ -12,11 +12,16 @@ class CrawlerQueue:
 		import collections
 		# NOTE that collections.deque() is thread-safe
 		# https://docs.python.org/2/library/collections.html#collections.deque
-		self.messageQ = collections.deque()
-		self.messageQFillSema = threading.Semaphore()
-		self.messageQEmptySema = threading.Semaphore()
-		self.messageQSema = threading.Semaphore(0)
-		self.messageQLock = threading.Lock()
+		self.crawlerQ = collections.deque()
+		# set the initial value of the semaphore to be 0
+		self.crawlerQSema = threading.Semaphore(0)
+		self.crawlerQLock = threading.Lock()
+		
+		self.rankerQ = collections.deque()
+		# set the initial value of the semaphore to be 0
+		self.rankerQSema = threading.Semaphore(0)
+		self.rankerQLock = threading.Lock()
+		
 		
 class CrawlerThread(threading.Thread):
 		
@@ -71,14 +76,14 @@ class CrawlerThread(threading.Thread):
 						text = text + doc['headline']['main']
 					
 					try:
-						self.crawlerQueue.messageQLock.acquire()
+						self.crawlerQueue.crawlerQLock.acquire()
 						
-						self.crawlerQueue.messageQ.append((text, doc['headline']['main'], doc['web_url']))
+						self.crawlerQueue.crawlerQ.append((text, doc['headline']['main'], doc['web_url']))
 					
-						self.crawlerQueue.messageQSema.release()
+						self.crawlerQueue.crawlerQSema.release()
 						
 					finally:
-						self.crawlerQueue.messageQLock.release()
+						self.crawlerQueue.crawlerQLock.release()
 			
 		
 class NewsCrawler:
