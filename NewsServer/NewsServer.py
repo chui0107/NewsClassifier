@@ -4,7 +4,8 @@ from NewsCrawler import NewsHost
 from NewsCrawler import MessageQueue
 from NewsRanker import NewsRanker
 from NewsClassifier import NaiveBayesClassifier
-	 				
+from RankingAlgorithm import RankingAlgorithm
+
 def main():
 				
 	curPath = os.getcwd()
@@ -23,9 +24,8 @@ def main():
 	
 	newsCrawler.AddHost(nyTimes)
 	
-	# GetCommondLineInput()
-	
-	newsRanker = NewsRanker(messageQueue)
+	rankingAlgorithm = RankingAlgorithm()
+	newsRanker = NewsRanker(messageQueue, rankingAlgorithm)
 
 	newsCrawler.Crawl()
 	

@@ -2,14 +2,16 @@ import threading
 
 class NewsRanker:
 	
-	def __init__(self, messageQueue):
+	def __init__(self, messageQueue, algorithm):
 		self.newsDict = {}
 		self.messageQueue = messageQueue
 		self.rankedNews = {}
 		self.rankedNewsUrl = set()
 		self.rankedNewsLock = threading.Lock()
+		self.rankingAlgorithm = algorithm
 		
 	def __Rank__(self):
+		import time
 		
 		while True:	
 			
@@ -17,6 +19,10 @@ class NewsRanker:
 			
 			if newsTuple:
 				self.__FillRankedNewsDict__(newsTuple)
+			
+			if 'business' in self.rankedNews:
+				self.rankingAlgorithm.Rank(self.rankedNews['business'], [])
+				
 				
 	def __FillRankedNewsDict__(self, newsTuple):
 		className = newsTuple[0]
