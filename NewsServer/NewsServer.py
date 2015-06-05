@@ -8,7 +8,7 @@ from NewsClassifier import NaiveBayesClassifier
 from RankingAlgorithm import RankingAlgorithm
 
 class NewsServer:
-	def __init__(self, host, port):
+	def __init__(self, host, port, newsRanker):
 		import socket
 
 		self.host = host
@@ -18,24 +18,31 @@ class NewsServer:
 		self.sock.bind(server_address)
 		self.sock.listen(1)
 		print 'Starting up server on %s port %s' % server_address
+		
+		self.newsRanker = newsRanker
 	
 	def __Start__(self):
+		
+		bufSize = 100
 		
 		while True:
 			
 			connection, client_address = self.sock.accept()
+			
 			try:
 				print sys.stderr, 'connection from', client_address
 
 				# Receive the data in small chunks and retransmit it
 				while True:
-					data = connection.recv(16)
-					print sys.stderr, 'received "%s"' % data
+					
+					data = connection.recv(bufSize).lower()
+					
 					if data:
-						print sys.stderr, 'sending data back to the client'
-						connection.sendall(data)
+						if data == 'business':
+							news = self.newsRanker.RetrieveNews(data)
+							if news:
+								print '1'
 					else:
-						print sys.stderr, 'no more data from', client_address
 						break
 			
 			finally:
@@ -85,7 +92,7 @@ def main():
 	
 	newsRanker.Rank()
 	
-	newsServer = NewsServer('localhost', 10000)
+	newsServer = NewsServer('localhost', 10000, newsRanker)
 	newsServer.Start()
 	
 	allThreads = []

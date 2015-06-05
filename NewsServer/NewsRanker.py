@@ -68,6 +68,7 @@ class NewsRanker:
 	def GetRankerThreads(self):
 		return self.rankerThreads
 	
+	# this by default return the top 10 news
 	def RetrieveNews(self, className):
 		
 		news = []
