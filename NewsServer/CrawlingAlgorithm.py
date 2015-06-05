@@ -8,22 +8,7 @@ class CrawlingAlgorithm:
 		self.docLink = docLink
 		self.visitedUrl = set()
 	
-	@abc.abstractmethod
-	def __FillCrawlerQ__(self, messageQueue, newTuple):
-		return
-	
-	@abc.abstractmethod
-	def Crawl(self):
-		return
-	
-
-class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
-	def __init__(self, url, apiKey, docLink):
-		CrawlingAlgorithm.__init__(self, url, apiKey, docLink)
-		self.timeout = 60
-		
 	def __FillCrawlerQ__(self, messageQueue, crawlerTuple):
-		
 		try:
 			messageQueue.crawlerQLock.acquire()
 					
@@ -33,7 +18,18 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 						
 		finally:
 			messageQueue.crawlerQLock.release()	
-		
+	
+	
+	@abc.abstractmethod
+	def Crawl(self):
+		return
+	
+
+class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
+	def __init__(self, url, apiKey, docLink):
+		CrawlingAlgorithm.__init__(self, url, apiKey, docLink)
+		self.timeout = 600
+			
 	def Crawl(self, messageQueue):
 		
 		import time
@@ -77,5 +73,43 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 			# crawl every minute
 			time.sleep(self.timeout)
 					
-					
+class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
+	def __init__(self, url, apiKey, docLink):
+		CrawlingAlgorithm.__init__(self, url, apiKey, docLink)
+		self.timeout = 600
+		# no news older than 7 days 
+		self.days = 7
+		
+	def Crawl(self, messageQueue):
+		
+		import time
+		
+		while  True:
+			
+			# crawl 30 news for now
+			responseFormat = 'json'
+			
+			params = {'days': self.days, 'count':30, 'encoding':responseFormat, 'api_key': self.apiKey}
+			
+			r = requests.get(self.url, params=params)
+			
+			if r.status_code != 200:
+				return
+			
+			response = r.json()
+			
+			# pact news into a text
+			for doc in response['stories']:
+				text = ''
+				if doc['title'] != None:
+					text += doc['title'] + ' '
 				
+				if doc['description'] != None:						
+					text += doc['description']
+				
+				if not doc['link'] in self.visitedUrl:
+					self.__FillCrawlerQ__(messageQueue, (text, doc['title'], doc['link']))
+					self.visitedUrl.add(doc['link'])
+				
+			# crawl every minute
+			time.sleep(self.timeout)

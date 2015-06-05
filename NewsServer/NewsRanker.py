@@ -68,7 +68,6 @@ class NewsRanker:
 	def GetRankerThreads(self):
 		return self.rankerThreads
 	
-	# this by default return the top 10 news
 	def RetrieveNews(self, className):
 		
 		news = None
@@ -76,7 +75,9 @@ class NewsRanker:
 			self.rankedNewsLock.acquire()
 			
 			if className in self.rankedNews:
-				news = self.rankedNews[className]
+				# this by default return the top 10 news
+				news = self.rankedNews[className][:10]
+				
 			else:
 				print 'Currently don\'t support this category' 
 				

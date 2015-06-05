@@ -13,21 +13,18 @@ def SendRequest(message):
 	
 		sock.connect(server_address)
 
-		print message
 		sock.sendall(message)
 		jsonString = sock.recv(bufSize)
 		
 		if len(jsonString) == 0:
 			raise RuntimeError("socket connection broken")
 		
-		print jsonString
 		replyJosn = json.loads(jsonString)
 		if(replyJosn['status'] == 0):
 			print 'Can\'t retrieve news for the category'
 		else:
 			print replyJosn['news']
 	
-
 	finally:
 		sock.close()
 
