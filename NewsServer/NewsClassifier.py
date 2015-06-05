@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import abc
 
 class NewsClassifier:
 	
@@ -11,13 +12,14 @@ class NewsClassifier:
 		self.__Train__(self.trainingSetpath)
 		self.classifierThreads = []
 	
+	@abc.abstractmethod
 	def Classify(self):
 		return
 	
 	def GetClassifierThreads(self):
 		return self.classifierThreads
-
 	
+	@abc.abstractmethod
 	def __Train__(self, trainingSetpath):
 		return
 					
@@ -151,7 +153,7 @@ class NaiveBayesClassifier(NewsClassifier):
 			
 			# (text,headline,url)
 			newsTuple = self.messageQueue.crawlerQ.popleft()
-		
+			
 			self.messageQueue.crawlerQLock.release()
 			
 			words = self.__TokenizeText__(newsTuple[0])

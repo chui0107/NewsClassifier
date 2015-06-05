@@ -8,6 +8,7 @@ class NewsRanker:
 		self.rankedNews = {}
 		self.rankedNewsUrl = set()
 		self.rankedNewsLock = threading.Lock()
+		self.topNews = 10;
 		self.rankingAlgorithm = algorithm
 		
 	def __Rank__(self):
@@ -19,8 +20,8 @@ class NewsRanker:
 			if newsTuple:
 				self.__FillRankedNewsDict__(newsTuple)
 			
-			if 'business' in self.rankedNews:
-				self.rankingAlgorithm.Rank(self.rankedNews['business'], [])
+			# if 'business' in self.rankedNews:
+				# self.rankingAlgorithm.Rank(self.rankedNews['business'], [])
 				
 				
 	def __FillRankedNewsDict__(self, newsTuple):
@@ -76,7 +77,7 @@ class NewsRanker:
 			
 			if className in self.rankedNews:
 				# this by default return the top 10 news
-				news = self.rankedNews[className][:10]
+				news = self.rankedNews[className][:self.topNews]
 				
 			else:
 				print 'Currently don\'t support this category' 

@@ -1,5 +1,6 @@
 import requests
 import abc
+import time
 
 class CrawlingAlgorithm:
 	def __init__(self, url, apiKey, docLink):
@@ -32,7 +33,6 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 			
 	def Crawl(self, messageQueue):
 		
-		import time
 		'''
 			{u'status': u'OK', u'response': {u'docs': [], u'meta': {u'hits': 0, u'offset': 0, u'time': 54}}, u'copyright': u'Copyright (c) 2013 The New York Times Company.  All Rights Reserved.'}
 		'''
@@ -81,8 +81,6 @@ class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
 		self.days = 7
 		
 	def Crawl(self, messageQueue):
-		
-		import time
 		
 		while  True:
 			
