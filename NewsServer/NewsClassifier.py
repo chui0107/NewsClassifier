@@ -164,7 +164,7 @@ class NaiveBayesClassifier(NewsClassifier):
 	
 		try:
 			self.messageQueue.rankerQLock.acquire()
-						
+			
 			self.messageQueue.rankerQ.append(rankerTuple)
 					
 			self.messageQueue.rankerQSema.release()

@@ -1,11 +1,11 @@
 import os
 import sys
 from NewsCrawler import NewsCrawler
-from NewsCrawler import NewsHost
 from NewsCrawler import MessageQueue
 from NewsRanker import NewsRanker
 from NewsClassifier import NaiveBayesClassifier
 from RankingAlgorithm import RankingAlgorithm
+from CrawlingAlgorithm import NYtimesCrawlingAlgorithm
 
 class NewsServer:
 	def __init__(self, host, port, newsRanker):
@@ -84,9 +84,9 @@ def main():
 	
 	newsCrawler = NewsCrawler(messageQueue)
 	
-	nyTimes = NewsHost('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2')
+	nyTimes = NYtimesCrawlingAlgorithm('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2')
 	
-	newsCrawler.AddHost(nyTimes)
+	newsCrawler.AddAlgorithm(nyTimes)
 	
 	rankingAlgorithm = RankingAlgorithm()
 	newsRanker = NewsRanker(messageQueue, rankingAlgorithm)
