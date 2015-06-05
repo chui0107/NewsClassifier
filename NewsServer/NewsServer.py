@@ -45,7 +45,7 @@ class NewsServer:
 				if news:
 					replyJson['status'] = 1
 					replyJson['news'] = json.dumps(news)
-															
+					
 				connection.sendall(json.dumps(replyJson))
 				
 			except:
@@ -76,7 +76,7 @@ def main():
 	
 	trainingSetPath = curPath + '/TrainingSet/'
 	
-	testSetPath = curPath + '/TestSet/'
+	# testSetPath = curPath + '/TestSet/'
 	
 	messageQueue = MessageQueue()
 

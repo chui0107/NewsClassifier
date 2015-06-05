@@ -4,16 +4,15 @@ def SendRequest(message):
 	import socket
 	import json
 
-		# Create a TCP/IP socket
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-	# Connect the socket to the port where the server is listening
-	server_address = ('localhost', 10000)
-	
-	sock.connect(server_address)
-
-	bufSize = 2018
+	bufSize = 1 << 20
 	try:
+		
+		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+		server_address = ('localhost', 10000)
+	
+		sock.connect(server_address)
+
 		print message
 		sock.sendall(message)
 		jsonString = sock.recv(bufSize)
@@ -21,6 +20,7 @@ def SendRequest(message):
 		if len(jsonString) == 0:
 			raise RuntimeError("socket connection broken")
 		
+		print jsonString
 		replyJosn = json.loads(jsonString)
 		if(replyJosn['status'] == 0):
 			print 'Can\'t retrieve news for the category'
