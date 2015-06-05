@@ -23,30 +23,35 @@ class NewsServer:
 	
 	def __Start__(self):
 		
-		bufSize = 100
+		import json
+		bufSize = 2048
 		
 		while True:
 			
 			connection, client_address = self.sock.accept()
+			print 'connection from', client_address
 			
 			try:
-				print sys.stderr, 'connection from', client_address
-
-				# Receive the data in small chunks and retransmit it
-				while True:
+				
+				data = connection.recv(bufSize)
+				if data == '':
+					print "Connection issue:", sys.exc_info()[0]
+					continue
+			
+				data = data.lower()
+				replyJson = {'status':0, 'news':None}
+				news = self.newsRanker.RetrieveNews(data)
 					
-					data = connection.recv(bufSize).lower()
-					
-					if data:
-						if data == 'business':
-							news = self.newsRanker.RetrieveNews(data)
-							if news:
-								print '1'
-					else:
-						break
+				if news:
+					replyJson['status'] = 1
+					replyJson['news'] = json.dumps(news)
+															
+				connection.sendall(json.dumps(replyJson))
+				
+			except:
+				print "Unexpected error:", sys.exc_info()[0]
 			
 			finally:
-				# Clean up the connection
 				connection.close()
 		
 	

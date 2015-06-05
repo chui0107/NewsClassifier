@@ -1,14 +1,45 @@
 
+def SendRequest(message):
+	
+	import socket
+	import json
+
+		# Create a TCP/IP socket
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+	# Connect the socket to the port where the server is listening
+	server_address = ('localhost', 10000)
+	
+	sock.connect(server_address)
+
+	bufSize = 2018
+	try:
+		print message
+		sock.sendall(message)
+		jsonString = sock.recv(bufSize)
+		
+		if len(jsonString) == 0:
+			raise RuntimeError("socket connection broken")
+		
+		replyJosn = json.loads(jsonString)
+		if(replyJosn['status'] == 0):
+			print 'Can\'t retrieve news for the category'
+		else:
+			print replyJosn['news']
+	
+
+	finally:
+		sock.close()
+
+
+
 def GetCommondLineInput():
 	
-	import readline
 	import shlex
-	
+
 	print 'Enter a subject of news to browse'
 	print 'To get help, enter `help`.'
-	
-	subjects = frozenset(['business', 'politics', 'entertainment'])
-	
+		
 	while True:
 		
 		inputs = shlex.split(raw_input('Subject: '))
@@ -18,42 +49,17 @@ def GetCommondLineInput():
 			
 		cmd = inputs[0].lower()
 		
-		if cmd in subjects:
-			print 'in'
-			continue;
-						
 		if cmd == 'exit':
 			break
-
 		elif cmd == 'help':
-			print 'To be added'
-	
+			print 'To be added'	
 		else:
-			print('Unknown command: {}'.format(cmd))		 
-				
+			SendRequest(cmd)
+
 def main():
 	
-	import socket
-	import sys
+	GetCommondLineInput()
 	
-	# Create a TCP/IP socket
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-	# Connect the socket to the port where the server is listening
-	server_address = ('localhost', 10000)
-	print >> sys.stderr, 'connecting to %s port %s' % server_address
-	sock.connect(server_address)
-
-	try:	
-		# Send data
-		message = 'business'
-		sock.sendall(message)	
-
-	finally:
-		print >> sys.stderr, 'closing socket'
-		sock.close()
-	
-	return
 					
 if __name__ == "__main__":
 	main()		

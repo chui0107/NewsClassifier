@@ -71,7 +71,7 @@ class NewsRanker:
 	# this by default return the top 10 news
 	def RetrieveNews(self, className):
 		
-		news = []
+		news = None
 		try:					
 			self.rankedNewsLock.acquire()
 			
