@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 from NewsCrawler import NewsCrawler
 from NewsCrawler import MessageQueue
 from NewsRanker import NewsRanker
@@ -80,7 +81,11 @@ def main():
 	# testSetPath = curPath + '/TestSet/'
 	
 	messageQueue = MessageQueue()
-
+	
+	logging.basicConfig(filename='SystemLog.log', filemode='w', format='%(asctime)s | %(levelname)s: | %(message)s', level=logging.INFO)
+	
+	logging.info('Starting up the system')
+	
 	newsClassifier = NaiveBayesClassifier(trainingSetPath, messageQueue)
 	
 	newsCrawler = NewsCrawler(messageQueue)
@@ -102,6 +107,8 @@ def main():
 	
 	newsServer = NewsServer('localhost', 10000, newsRanker)
 	newsServer.Start()
+	
+	logging.info('All threads started, waiting for inquires')
 	
 	allThreads = []
 	
