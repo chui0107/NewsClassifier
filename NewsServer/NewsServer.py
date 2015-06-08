@@ -78,6 +78,8 @@ def main():
 	logging.basicConfig(filename='SystemLog.log', filemode='w', format='%(asctime)s | %(levelname)s: | %(message)s', level=logging.INFO)
 	
 	logging.info('Starting up the system')
+	
+	enableTestSet = True
 				
 	curPath = os.getcwd()
 	
@@ -89,6 +91,11 @@ def main():
 	
 	naiveBayes = NaiveBayes(messageQueue)
 	newsClassifier = NewsClassifier(naiveBayes, trainingSetPath, testingSetPath)
+	
+	if enableTestSet:
+		logging.info('Testing classifier from local files')
+		newsClassifier.TestClassifier()
+		return
 	
 	newsCrawler = NewsCrawler(messageQueue)
 	

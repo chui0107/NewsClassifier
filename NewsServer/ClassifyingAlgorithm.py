@@ -9,11 +9,15 @@ class ClassifyingAlgorithm:
 		return re.findall('[a-z]+', text.lower())
 	
 	@abc.abstractmethod	
-	def Train(self):
+	def Train(self, trainingSetPath):
 		return
 	
 	@abc.abstractmethod
 	def Classify(self):
+		return
+	
+	@abc.abstractmethod	
+	def TestClassifier(self, testingSetPath):
 		return
 
 class NaiveBayes(ClassifyingAlgorithm):
@@ -79,59 +83,6 @@ class NaiveBayes(ClassifyingAlgorithm):
 		
 		return className
 			
-	def Train(self, path):
-		
-		import os
-		import json
-		
-		self.vocabulary = []
-		self.vocabulary.append({})
-		
-		for eachClass in os.listdir(path):
-			
-			fileName = eachClass.lower()
-				
-			# class file 
-			extension = fileName[len(fileName) - 4:]
-			if extension != '.txt':
-				continue
-				
-			className = fileName[:len(fileName) - 4]
-				
-			with open(path + eachClass, 'r') as f:
-					
-				news = json.load(f)
-				
-				text = ''
-		
-				for eachnews in news:
-			
-					title = eachnews[1]
-		
-					description = eachnews[2]
-		
-				text += title + description	
-				
-				words = self.__TokenizeText__(text)
-				
-				self.__PopulateClass__(className, words)
-					
-		# populate prior probabilities
-		classes = self.vocabulary[0]
-		totolWords = 0
-		
-		for eachClass in classes:
-			
-			eachClassPriorProbability = 1.0 / len(classes)
-			
-			classes[eachClass].append(eachClassPriorProbability)
-			
-			# populate total words
-			wordInEachClass = classes[eachClass][1]
-			totolWords = totolWords + wordInEachClass
-			
-		self.vocabulary.append(totolWords)
-							
 	def __ExtractCrawlerQ__(self):
 			# blocking call
 			self.messageQueue.crawlerQSema.acquire(True)
@@ -161,10 +112,104 @@ class NaiveBayes(ClassifyingAlgorithm):
 		finally:
 			self.messageQueue.rankerQLock.release()
 			
+	def Train(self, trainingSetPath):
+		
+		import os
+		import json
+		
+		self.vocabulary = []
+		self.vocabulary.append({})
+		
+		for eachClass in os.listdir(trainingSetPath):
 			
+			fileName = eachClass.lower()
+				
+			# class file 
+			extension = fileName[-4:]
+			
+			if extension != '.txt':
+				continue
+				
+			className = fileName[:-4]
+			
+			with open(trainingSetPath + eachClass, 'r') as f:
+					
+				news = json.load(f)
+				
+				text = ''
+		
+				for eachnews in news:
+			
+					title = eachnews[1]
+		
+					description = eachnews[2]
+		
+					text += title + ' ' + description + ' '	
+				
+				words = self.__TokenizeText__(text)
+				
+				self.__PopulateClass__(className, words)
+					
+		# populate prior probabilities
+		classes = self.vocabulary[0]
+		totolWords = 0
+		
+		for eachClass in classes:
+			
+			eachClassPriorProbability = 1.0 / len(classes)
+			
+			classes[eachClass].append(eachClassPriorProbability)
+			
+			# populate total words
+			wordInEachClass = classes[eachClass][1]
+			totolWords = totolWords + wordInEachClass
+			
+		self.vocabulary.append(totolWords)
+							
+	def TestClassifier(self, testingSetPath):
+		
+		import os
+		import json
+		
+		for eachClass in os.listdir(testingSetPath):
+			
+			fileName = eachClass.lower()
+				
+			# class file 
+			extension = fileName[-4:]
+			if extension != '.txt':
+				continue
+			
+			className = fileName[:-4]
+				
+			with open(testingSetPath + eachClass, 'r') as f:
+					
+				print 'testing %s:' % className
+				
+				news = json.load(f)
+				
+				totalNews = 0
+				mistake = 0
+				
+				for eachnews in news:
+			
+					text = eachnews[1] + ' ' + eachnews[2]
+					
+					words = self.__TokenizeText__(text)
+					
+					computedClassName = self.__ComputeClass__(words)
+					
+					totalNews = totalNews + 1
+					
+					if computedClassName != className:
+						mistake = mistake + 1
+			print 'In %s category, the classifier achieved %0.2f accuracy (%d,%d)\n' % (className, (totalNews - mistake) / float(totalNews), (totalNews - mistake), totalNews)	
+	
 	def Classify(self):
 		
 		while True:
 			rankerTuple = self.__ExtractCrawlerQ__()
 			self.__FillRankerQ__(rankerTuple)
+			
+	
 	

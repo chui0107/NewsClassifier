@@ -12,7 +12,10 @@ class NewsClassifier:
 	
 	def __Train__(self):
 		self.classifyAlgorithm.Train(self.trainingSetPath)
-								
+						
+	def TestClassifier(self):
+		self.classifyAlgorithm.TestClassifier(self.testingSetPath)
+									
 	def Classify(self):
 		import threading
 		
