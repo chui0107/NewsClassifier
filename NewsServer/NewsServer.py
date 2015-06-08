@@ -1,15 +1,15 @@
 import os
 import sys
 import logging
+from NewsBase import NewsHost
+from NewsBase import MessageQueue
 from NewsCrawler import NewsCrawler
-from NewsCrawler import MessageQueue
 from RankingAlgorithm import RankingAlgorithm
 from CrawlingAlgorithm import NYtimesCrawlingAlgorithm
 from CrawlingAlgorithm import USATodayCrawlingAlgorithm
 from ClassifyingAlgorithm import NaiveBayes
 from NewsRanker import NewsRanker
 from NewsClassifier import NewsClassifier
-from NewsBase import NewsHost
 
 class NewsServer:
 	def __init__(self, host, port, newsRanker):
@@ -80,6 +80,7 @@ def main():
 	
 	logging.info('Starting up the system')
 	
+	enableTrainingSetCrawler = True
 	enableTestSet = True
 				
 	curPath = os.getcwd()
@@ -92,7 +93,11 @@ def main():
 	
 	nyTimesHost = NewsHost('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2') 
 	usaTodayHost = NewsHost('http://api.usatoday.com/open/articles', 'b5vr5crn4xryqh2p4ppbybjv', 'http://developer.usatoday.com/docs/read/articles')
-
+	
+	if enableTrainingSetCrawler:
+		logging.info('Running traningSetCrawler')
+		return
+	
 	naiveBayes = NaiveBayes(messageQueue)
 	newsClassifier = NewsClassifier(naiveBayes, trainingSetPath, testingSetPath)
 	
