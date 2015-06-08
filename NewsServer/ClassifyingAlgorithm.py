@@ -27,39 +27,33 @@ class NaiveBayes(ClassifyingAlgorithm):
 				
 	def __PopulateClass__(self, className, words):
 		
+		import collections
+		
 		classes = self.vocabulary[0]
 		
-		classes[className] = []
-		
-		wordCount = {}
-		wordSize = 0
+		classes[className] = collections.defaultdict(lambda: 1)
 		
 		for word in words:
-			if word in wordCount:
-				wordCount[word] = wordCount[word] + 1
-			else:
-				wordCount[word] = 1
-				wordSize = wordSize + 1
-						
-		classes[className].append(wordCount)
-		classes[className].append(wordSize)
-	
+			classes[className][word] += 1
+							
 	def __ComputeClass__(self, words):
 		
 		import math
 		
 		classes = self.vocabulary[0]
-		vocabularySize = self.vocabulary[1]
+		classPriores = self.vocabulary[1]
+		vocabularySize = self.vocabulary[2]
 		
 		classMaxProb = -float("inf");
 		className = ''
 		
 		for classKey in classes:
 			
-			classTuple = classes[classKey]
-			classDict = classTuple[0]
-			classWordSize = classTuple[1]
-			classPrior = classTuple[2]
+			classDict = classes[classKey]
+			classWordSize = len(classDict)
+			
+			classPrior = classPriores[classKey]
+			
 			denominator = classWordSize + vocabularySize
 			classProb = 0.0
 			
@@ -151,17 +145,21 @@ class NaiveBayes(ClassifyingAlgorithm):
 				self.__PopulateClass__(className, words)
 					
 		# populate prior probabilities
+		self.vocabulary.append({})
+		
 		classes = self.vocabulary[0]
+		classesPrior = self.vocabulary[1]
+		
 		totolWords = 0
 		
 		for eachClass in classes:
 			
 			eachClassPriorProbability = 1.0 / len(classes)
 			
-			classes[eachClass].append(eachClassPriorProbability)
+			classesPrior[eachClass] = eachClassPriorProbability
 			
 			# populate total words
-			wordInEachClass = classes[eachClass][1]
+			wordInEachClass = len(classes[eachClass])
 			totolWords = totolWords + wordInEachClass
 			
 		self.vocabulary.append(totolWords)
