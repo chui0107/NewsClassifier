@@ -1,6 +1,12 @@
-2015-06-08 09:23:20,649 | INFO: | Starting up the system
-2015-06-08 09:23:20,706 | INFO: | All threads started, waiting for inquires
-2015-06-08 09:23:20,811 | INFO: | Starting new HTTP connection (1): api.usatoday.com
-2015-06-08 09:23:20,879 | INFO: | Starting new HTTP connection (1): api.nytimes.com
-2015-06-08 09:23:21,540 | INFO: | Starting new HTTP connection (1): api.nytimes.com
-2015-06-08 09:23:21,875 | INFO: | Starting new HTTP connection (1): api.nytimes.com
+2015-06-08 11:46:23,946 | INFO: | Starting up the system
+2015-06-08 11:46:23,947 | INFO: | Running traningSetCrawler
+2015-06-08 11:46:23,965 | INFO: | Starting new HTTP connection (1): api.nytimes.com
+2015-06-08 11:46:24,014 | INFO: | Starting new HTTP connection (1): api.nytimes.com
+2015-06-08 11:46:24,084 | INFO: | Starting new HTTP connection (1): api.nytimes.com
+2015-06-08 11:46:24,144 | INFO: | Starting new HTTP connection (1): api.nytimes.com
+2015-06-08 11:46:24,210 | INFO: | Starting new HTTP connection (1): api.nytimes.com
+2015-06-08 11:46:24,272 | INFO: | Starting new HTTP connection (1): api.nytimes.com
+2015-06-08 11:46:24,328 | INFO: | Starting new HTTP connection (1): api.nytimes.com
+2015-06-08 11:46:24,379 | INFO: | Starting new HTTP connection (1): api.nytimes.com
+2015-06-08 11:46:24,428 | INFO: | Starting new HTTP connection (1): api.nytimes.com
+2015-06-08 11:46:24,476 | INFO: | Starting new HTTP connection (1): api.nytimes.com

@@ -10,7 +10,7 @@ from CrawlingAlgorithm import USATodayCrawlingAlgorithm
 from ClassifyingAlgorithm import NaiveBayes
 from NewsRanker import NewsRanker
 from NewsClassifier import NewsClassifier
-from TrainingSetCrawler import TrainingSetCrawler
+from TrainingCrawler import TrainingCrawler
 
 class NewsServer:
 	def __init__(self, host, port, newsRanker):
@@ -81,7 +81,7 @@ def main():
 	
 	logging.info('Starting up the system')
 	
-	enableTrainingSetCrawler = False
+	enableTrainingSetCrawler = True
 	enableTestSet = False
 				
 	curPath = os.getcwd()
@@ -106,8 +106,8 @@ def main():
 	
 	if enableTrainingSetCrawler:
 		logging.info('Running traningSetCrawler')
-		trainingSetCrawler = TrainingSetCrawler(newsHosts, newsCategories, trainingSetPath)
-		trainingSetCrawler.CrawlTrainingSet()
+		trainingCrawler = TrainingCrawler(newsHosts, newsCategories, trainingSetPath)
+		trainingCrawler.Crawl()
 		return
 	
 	naiveBayes = NaiveBayes(messageQueue)
