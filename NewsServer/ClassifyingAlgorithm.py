@@ -182,8 +182,6 @@ class NaiveBayes(ClassifyingAlgorithm):
 				
 			with open(testingSetPath + eachClass, 'r') as f:
 					
-				print 'testing %s:' % className
-				
 				news = json.load(f)
 				
 				totalNews = 0

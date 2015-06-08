@@ -3,10 +3,10 @@ import abc
 import time
 
 class CrawlingAlgorithm:
-	def __init__(self, url, apiKey, docLink):
-		self.url = url
-		self.apiKey = apiKey
-		self.docLink = docLink
+	def __init__(self, newsHost):
+		self.url = newsHost.url
+		self.apiKey = newsHost.apiKey
+		self.docLink = newsHost.docLink
 		self.visitedUrl = set()
 	
 	def __FillCrawlerQ__(self, messageQueue, crawlerTuple):
@@ -27,8 +27,8 @@ class CrawlingAlgorithm:
 	
 
 class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
-	def __init__(self, url, apiKey, docLink):
-		CrawlingAlgorithm.__init__(self, url, apiKey, docLink)
+	def __init__(self, newsHost):
+		CrawlingAlgorithm.__init__(self, newsHost)
 		self.timeout = 600
 			
 	def Crawl(self, messageQueue):

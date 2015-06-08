@@ -9,6 +9,7 @@ from CrawlingAlgorithm import USATodayCrawlingAlgorithm
 from ClassifyingAlgorithm import NaiveBayes
 from NewsRanker import NewsRanker
 from NewsClassifier import NewsClassifier
+from NewsBase import NewsHost
 
 class NewsServer:
 	def __init__(self, host, port, newsRanker):
@@ -89,6 +90,9 @@ def main():
 	
 	messageQueue = MessageQueue()
 	
+	nyTimesHost = NewsHost('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2') 
+	usaTodayHost = NewsHost('http://api.usatoday.com/open/articles', 'b5vr5crn4xryqh2p4ppbybjv', 'http://developer.usatoday.com/docs/read/articles')
+
 	naiveBayes = NaiveBayes(messageQueue)
 	newsClassifier = NewsClassifier(naiveBayes, trainingSetPath, testingSetPath)
 	
@@ -97,10 +101,11 @@ def main():
 		newsClassifier.TestClassifier()
 		return
 	
+	
 	newsCrawler = NewsCrawler(messageQueue)
 	
-	nyTimes = NYtimesCrawlingAlgorithm('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2')
-	usaTodayCrawlingAlgorithm = USATodayCrawlingAlgorithm('http://api.usatoday.com/open/articles', 'b5vr5crn4xryqh2p4ppbybjv', 'http://developer.usatoday.com/docs/read/articles')
+	nyTimes = NYtimesCrawlingAlgorithm(nyTimesHost)
+	usaTodayCrawlingAlgorithm = USATodayCrawlingAlgorithm(usaTodayHost)
 	
 	newsCrawler.AddAlgorithm(nyTimes)
 	newsCrawler.AddAlgorithm(usaTodayCrawlingAlgorithm)
