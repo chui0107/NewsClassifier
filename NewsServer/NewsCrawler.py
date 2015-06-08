@@ -6,11 +6,11 @@ class NewsCrawler:
 		self.messageQueue = messageQueue
 		self.crawlingAlgorithms = []
 	
-	def __FillCrawlerQ__(self, crawlerTuple):
+	def __FillCrawlerQ__(self, newsTuple):
 		try:
 			self.messageQueue.crawlerQLock.acquire()
 					
-			self.messageQueue.crawlerQ.append(crawlerTuple)
+			self.messageQueue.crawlerQ.append(newsTuple)
 					
 			self.messageQueue.crawlerQSema.release()
 						
@@ -26,7 +26,7 @@ class NewsCrawler:
 		self.crawlingThreads = []
 		
 		for algo in self.crawlingAlgorithms:
-			self.crawlingThreads.append(threading.Thread(target=algo.Crawl, args=(CrawlingOption.RunningCrawl, self.__FillCrawlerQ__)))
+			self.crawlingThreads.append(threading.Thread(target=algo.Crawl, args=(CrawlingOption.RunningCrawl, self.__FillCrawlerQ__, None)))
 			self.crawlingThreads[len(self.crawlingThreads) - 1].start()
 		
 	def GetCrawlerThreads(self):

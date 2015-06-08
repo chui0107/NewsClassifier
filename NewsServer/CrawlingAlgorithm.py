@@ -15,65 +15,90 @@ class CrawlingAlgorithm:
 		self.visitedUrl = set()
 	
 	@abc.abstractmethod
-	def Crawl(self, crawlingOption, action):
+	def Crawl(self, crawlingOption, action, crawlingParams=[]):
 		return
 	
 
 class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 	def __init__(self, newsHost):
 		CrawlingAlgorithm.__init__(self, newsHost)
-			
-	def Crawl(self, crawlingOption, action):
 		
-		if crawlingOption == CrawlingOption.TrainingCrawl:
-			self.nPages = 10
-		elif crawlingOption == CrawlingOption.RunningCrawl:
-			self.nPages = 10
-			self.timeout = 600
-			
+	def __Crawl__(self, page, action, category=None):
+		
 		'''
 			{u'status': u'OK', u'response': {u'docs': [], u'meta': {u'hits': 0, u'offset': 0, u'time': 54}}, u'copyright': u'Copyright (c) 2013 The New York Times Company.  All Rights Reserved.'}
 		'''
-		while  True:
-
-			# crawl 30 news for now
-			for page in range(self.nPages):
-				responseFormat = '.json'
-				sortOrder = 'newest'
-				# filterQuery = 'subject:(business)'						
-				# params = {'fq': filterQuery, 'page': page, 'sort':sortOrder, 'api-key': apiKey}
+		responseFormat = '.json'
+		sortOrder = 'newest'
+		
+		if category:
+			params = {'fq': 'section_name:(' + category + ')', 'page': page, 'sort':sortOrder, 'api-key': self.apiKey}
+		else:
+			params = {'page': page, 'sort':sortOrder, 'api-key': self.apiKey}
+		
+		r = requests.get(self.url + responseFormat, params=params)
+	
+		if r.status_code != 200:
+			return
+		
+		response = r.json()
+		
+		# pact news into a text
+		for doc in response['response']['docs']:
+			text = ''	
+			if doc['snippet'] != None:						
+				text += doc['snippet'] + ' '
+			if doc['lead_paragraph'] != None:
+				text += doc['lead_paragraph'] + ' '
+			if doc['abstract'] != None:
+				text += doc['abstract'] + ' '
+			if doc['headline'] != None and doc['headline']['main'] != None:
+				text += doc['headline']['main']
 			
-				params = {'page': page, 'sort':sortOrder, 'api-key': self.apiKey}
-				
-				r = requests.get(self.url + responseFormat, params=params)
+			if not doc['web_url'] in self.visitedUrl:
+				self.visitedUrl.add(doc['web_url'])
+				if category:
+					newTuple = (category, text, doc['headline']['main'], doc['web_url'])
+				else:
+					newTuple = (text, doc['headline']['main'], doc['web_url'])
+				action(newTuple)
+		
 			
-				if r.status_code != 200:
-					return
-				
-				response = r.json()
-				
-				# pact news into a text
-				for doc in response['response']['docs']:
-					text = ''	
-					if doc['snippet'] != None:						
-						text += doc['snippet'] + ' '
-					if doc['lead_paragraph'] != None:
-						text += doc['lead_paragraph'] + ' '
-					if doc['abstract'] != None:
-						text += doc['abstract'] + ' '
-					if doc['headline'] != None and doc['headline']['main'] != None:
-						text += doc['headline']['main']
+	def Crawl(self, crawlingOption, action, crawlingParams=[]):
+		
+		if crawlingOption == CrawlingOption.TrainingCrawl:
+			page = 0
+			nPages = 200
+			timeout = 1
+		elif crawlingOption == CrawlingOption.RunningCrawl:
+			nPages = 3
+			timeout = 600
+		
+		c = 0
 					
-					if not doc['web_url'] in self.visitedUrl:
-						self.visitedUrl.add(doc['web_url'])
+		while True:
+			
+			if crawlingOption == CrawlingOption.TrainingCrawl:
+				for category in crawlingParams:	
+					print 'crawling %s page: %d' % (category, page)
+					
+					# crawl the nytimes section for training data
+					self.__Crawl__(page, action, category)
+				
+				if page == nPages:
+					break
+								
+			elif crawlingOption == CrawlingOption.RunningCrawl:
+					for page in range(nPages):
+						self.__Crawl__(page, action)
 						
-						if crawlingOption == CrawlingOption.TrainingCrawl:
-							action()
-						elif crawlingOption == CrawlingOption.RunningCrawl:
-							action((text, doc['headline']['main'], doc['web_url']))
-						
-			# crawl every minute
-			time.sleep(self.timeout)
+			page += 1
+			c += 1
+			
+			# crawl every 1 second		
+			if c == 8:
+				c = 0		
+				time.sleep(timeout)
 					
 class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
 	
@@ -83,7 +108,7 @@ class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
 		# no news older than 7 days 
 		self.days = 7
 		
-	def Crawl(self, crawlingOption, action):
+	def Crawl(self, crawlingOption, action, crawlingParams=[]):
 		
 		while  True:
 			

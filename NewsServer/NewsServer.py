@@ -112,6 +112,7 @@ def main():
 	
 	naiveBayes = NaiveBayes(messageQueue)
 	newsClassifier = NewsClassifier(naiveBayes, trainingSetPath, testingSetPath)
+	newsClassifier.Train()
 	
 	if enableTestSet:
 		logging.info('Testing classifier from local files')

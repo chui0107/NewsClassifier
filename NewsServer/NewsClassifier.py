@@ -8,9 +8,8 @@ class NewsClassifier:
 		self.testingSetPath = testingSetPath
 		
 		self.classifierThreads = []
-		self.__Train__()
-	
-	def __Train__(self):
+		
+	def Train(self):
 		self.classifyAlgorithm.Train(self.trainingSetPath)
 						
 	def TestClassifier(self):
