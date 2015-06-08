@@ -3,11 +3,12 @@ import sys
 import logging
 from NewsCrawler import NewsCrawler
 from NewsCrawler import MessageQueue
-from NewsRanker import NewsRanker
-from NewsClassifier import NaiveBayesClassifier
 from RankingAlgorithm import RankingAlgorithm
 from CrawlingAlgorithm import NYtimesCrawlingAlgorithm
 from CrawlingAlgorithm import USATodayCrawlingAlgorithm
+from ClassifyingAlgorithm import NaiveBayes
+from NewsRanker import NewsRanker
+from NewsClassifier import NewsClassifier
 
 class NewsServer:
 	def __init__(self, host, port, newsRanker):
@@ -73,20 +74,21 @@ class NewsServer:
 	
 
 def main():
+	
+	logging.basicConfig(filename='SystemLog.log', filemode='w', format='%(asctime)s | %(levelname)s: | %(message)s', level=logging.INFO)
+	
+	logging.info('Starting up the system')
 				
 	curPath = os.getcwd()
 	
 	trainingSetPath = curPath + '/TrainingSet/'
 	
-	# testSetPath = curPath + '/TestSet/'
+	testingSetPath = curPath + '/TestSet/'
 	
 	messageQueue = MessageQueue()
 	
-	logging.basicConfig(filename='SystemLog.log', filemode='w', format='%(asctime)s | %(levelname)s: | %(message)s', level=logging.INFO)
-	
-	logging.info('Starting up the system')
-	
-	newsClassifier = NaiveBayesClassifier(trainingSetPath, messageQueue)
+	naiveBayes = NaiveBayes(messageQueue)
+	newsClassifier = NewsClassifier(naiveBayes, trainingSetPath, testingSetPath)
 	
 	newsCrawler = NewsCrawler(messageQueue)
 	
@@ -97,6 +99,7 @@ def main():
 	newsCrawler.AddAlgorithm(usaTodayCrawlingAlgorithm)
 	
 	rankingAlgorithm = RankingAlgorithm()
+	
 	newsRanker = NewsRanker(messageQueue, rankingAlgorithm)
 
 	newsCrawler.Crawl()

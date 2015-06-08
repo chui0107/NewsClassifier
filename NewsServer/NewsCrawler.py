@@ -1,5 +1,4 @@
 import threading
-import logging
 		
 class MessageQueue:
 	def __init__(self):
