@@ -2,6 +2,7 @@ import requests
 import abc
 import time
 from enum import Enum
+import logging
 
 class CrawlingOption(Enum):
 	TrainingCrawl = 1
@@ -39,6 +40,7 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 		r = requests.get(self.url + responseFormat, params=params)
 	
 		if r.status_code != 200:
+			logging.error('Http request failed with %s ', r.text)
 			return
 		
 		response = r.json()
@@ -68,7 +70,8 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 		
 		if crawlingOption == CrawlingOption.TrainingCrawl:
 			page = 0
-			nPages = 200
+			# nytimes only allows 100 pages at this time
+			nPages = 100
 			timeout = 1
 		elif crawlingOption == CrawlingOption.RunningCrawl:
 			nPages = 3
@@ -80,12 +83,12 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 			
 			if crawlingOption == CrawlingOption.TrainingCrawl:
 				for category in crawlingParams:	
-					print 'crawling %s page: %d' % (category, page)
 					
 					# crawl the nytimes section for training data
 					self.__Crawl__(page, action, category)
 				
 				if page == nPages:
+					logging.info('finished with all %d pages', page)
 					break
 								
 			elif crawlingOption == CrawlingOption.RunningCrawl:
@@ -97,7 +100,7 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 			
 			# crawl every 1 second		
 			if c == 8:
-				c = 0		
+				c = 0
 				time.sleep(timeout)
 					
 class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
