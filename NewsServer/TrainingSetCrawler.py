@@ -1,11 +1,10 @@
 class TrainingSetCrawler:
-	def __init__(self, newsHost, traningSetPath):
-		self.url = newsHost.url
-		self.apiKey = newsHost.apiKey
-		self.docLink = newsHost.docLink
+	def __init__(self, newsHosts, categories, traningSetPath):
+		self.newsHost = newsHosts
+		self.categories = categories
 		self.traningSetPath = traningSetPath
 		
-	def Crawl(self):
+	def CrawlTrainingSet(self):
 		return	
 		
 	

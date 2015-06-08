@@ -58,13 +58,13 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 				for doc in response['response']['docs']:
 					text = ''	
 					if doc['snippet'] != None:						
-						text = text + doc['snippet'] + ' '
+						text += doc['snippet'] + ' '
 					if doc['lead_paragraph'] != None:
-						text = text + doc['lead_paragraph'] + ' '
+						text += doc['lead_paragraph'] + ' '
 					if doc['abstract'] != None:
-						text = text + doc['abstract'] + ' '
+						text += doc['abstract'] + ' '
 					if doc['headline'] != None and doc['headline']['main'] != None:
-						text = text + doc['headline']['main']
+						text += doc['headline']['main']
 					
 					if not doc['web_url'] in self.visitedUrl:
 						self.__FillCrawlerQ__(messageQueue, (text, doc['headline']['main'], doc['web_url']))
@@ -74,8 +74,9 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 			time.sleep(self.timeout)
 					
 class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
-	def __init__(self, url, apiKey, docLink):
-		CrawlingAlgorithm.__init__(self, url, apiKey, docLink)
+	
+	def __init__(self, newsHost):
+		CrawlingAlgorithm.__init__(self, newsHost)
 		self.timeout = 600
 		# no news older than 7 days 
 		self.days = 7

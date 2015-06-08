@@ -10,6 +10,7 @@ from CrawlingAlgorithm import USATodayCrawlingAlgorithm
 from ClassifyingAlgorithm import NaiveBayes
 from NewsRanker import NewsRanker
 from NewsClassifier import NewsClassifier
+from TrainingSetCrawler import TrainingSetCrawler
 
 class NewsServer:
 	def __init__(self, host, port, newsRanker):
@@ -80,8 +81,8 @@ def main():
 	
 	logging.info('Starting up the system')
 	
-	enableTrainingSetCrawler = True
-	enableTestSet = True
+	enableTrainingSetCrawler = False
+	enableTestSet = False
 				
 	curPath = os.getcwd()
 	
@@ -91,11 +92,22 @@ def main():
 	
 	messageQueue = MessageQueue()
 	
-	nyTimesHost = NewsHost('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2') 
+	newsHosts = []
+	nyTimesHost = NewsHost('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2')
+	nyTimesHostAlgo = NYtimesCrawlingAlgorithm(nyTimesHost)
+	newsHosts.append((nyTimesHost, nyTimesHostAlgo)) 
+	
 	usaTodayHost = NewsHost('http://api.usatoday.com/open/articles', 'b5vr5crn4xryqh2p4ppbybjv', 'http://developer.usatoday.com/docs/read/articles')
+	usaTodayHostAlgo = USATodayCrawlingAlgorithm(usaTodayHost)
+	newsHosts.append((usaTodayHost, usaTodayHostAlgo))
+	
+	newsCategories = []
+	newsCategories.append('business')
 	
 	if enableTrainingSetCrawler:
 		logging.info('Running traningSetCrawler')
+		trainingSetCrawler = TrainingSetCrawler(newsHosts, newsCategories, trainingSetPath)
+		trainingSetCrawler.CrawlTrainingSet()
 		return
 	
 	naiveBayes = NaiveBayes(messageQueue)
@@ -106,14 +118,10 @@ def main():
 		newsClassifier.TestClassifier()
 		return
 	
-	
 	newsCrawler = NewsCrawler(messageQueue)
 	
-	nyTimes = NYtimesCrawlingAlgorithm(nyTimesHost)
-	usaTodayCrawlingAlgorithm = USATodayCrawlingAlgorithm(usaTodayHost)
-	
-	newsCrawler.AddAlgorithm(nyTimes)
-	newsCrawler.AddAlgorithm(usaTodayCrawlingAlgorithm)
+	for newsHost in newsHosts:
+		newsCrawler.AddAlgorithm(newsHost[1])
 	
 	rankingAlgorithm = RankingAlgorithm()
 	

@@ -5,9 +5,6 @@ class NewsCrawler:
 		self.messageQueue = messageQueue
 		self.crawlingAlgorithms = []
 	
-	def __Crawl__(self, algo):
-		algo.Crawl(self.messageQueue)
-	
 	def AddAlgorithm(self, crawlingAlgorithm):
 		self.crawlingAlgorithms.append(crawlingAlgorithm)
 			
@@ -17,7 +14,7 @@ class NewsCrawler:
 		self.crawlingThreads = []
 		
 		for algo in self.crawlingAlgorithms:
-			self.crawlingThreads.append(threading.Thread(target=self.__Crawl__, args=(algo,)))
+			self.crawlingThreads.append(threading.Thread(target=algo.Crawl, args=(self.messageQueue,)))
 			self.crawlingThreads[len(self.crawlingThreads) - 1].start()
 		
 	def GetCrawlerThreads(self):
