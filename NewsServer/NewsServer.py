@@ -81,8 +81,8 @@ def main():
 	
 	logging.info('Starting up the system')
 	
-	enableTrainingSetCrawler = True
-	enableTestSet = False
+	enableTrainingSetCrawler = False
+	enableTestSet = True
 				
 	curPath = os.getcwd()
 	

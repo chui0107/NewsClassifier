@@ -86,6 +86,7 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 					
 					# crawl the nytimes section for training data
 					self.__Crawl__(page, action, category)
+					print 'Crawling page %d' % page
 				
 				if page == nPages:
 					logging.info('finished with all %d pages', page)

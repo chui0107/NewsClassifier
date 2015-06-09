@@ -1,4 +1,5 @@
 import abc
+from cgitb import text
 
 class ClassifyingAlgorithm:
 	def __init__(self, messageQueue):
@@ -109,7 +110,6 @@ class NaiveBayes(ClassifyingAlgorithm):
 	def Train(self, trainingSetPath):
 		
 		import os
-		import json
 		
 		self.vocabulary = []
 		self.vocabulary.append({})
@@ -128,17 +128,7 @@ class NaiveBayes(ClassifyingAlgorithm):
 			
 			with open(trainingSetPath + eachClass, 'r') as f:
 					
-				news = json.load(f)
-				
-				text = ''
-		
-				for eachnews in news:
-			
-					title = eachnews[1]
-		
-					description = eachnews[2]
-		
-					text += title + ' ' + description + ' '	
+				text = f.read()
 				
 				words = self.__TokenizeText__(text)
 				
@@ -195,10 +185,10 @@ class NaiveBayes(ClassifyingAlgorithm):
 					
 					computedClassName = self.__ComputeClass__(words)
 					
-					totalNews = totalNews + 1
+					totalNews += 1
 					
 					if computedClassName != className:
-						mistake = mistake + 1
+						mistake += 1
 			print 'In %s category, the classifier achieved %0.2f accuracy (%d,%d)\n' % (className, (totalNews - mistake) / float(totalNews), (totalNews - mistake), totalNews)	
 	
 	def Classify(self):
