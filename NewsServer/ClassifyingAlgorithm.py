@@ -150,7 +150,7 @@ class NaiveBayes(ClassifyingAlgorithm):
 			
 			# populate total words
 			wordInEachClass = len(classes[eachClass])
-			totolWords = totolWords + wordInEachClass
+			totolWords += wordInEachClass
 			
 		self.vocabulary.append(totolWords)
 							
@@ -169,7 +169,7 @@ class NaiveBayes(ClassifyingAlgorithm):
 				continue
 			
 			className = fileName[:-4]
-				
+			
 			with open(testingSetPath + eachClass, 'r') as f:
 					
 				news = json.load(f)
@@ -189,6 +189,7 @@ class NaiveBayes(ClassifyingAlgorithm):
 					
 					if computedClassName != className:
 						mistake += 1
+						
 			print 'In %s category, the classifier achieved %0.2f accuracy (%d,%d)\n' % (className, (totalNews - mistake) / float(totalNews), (totalNews - mistake), totalNews)	
 	
 	def Classify(self):
