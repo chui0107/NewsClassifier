@@ -3,6 +3,7 @@ import abc
 import time
 from enum import Enum
 import logging
+from unicodedata import category
 
 class CrawlingOption(Enum):
 	TrainingCrawl = 1
@@ -36,10 +37,14 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 			params = {'fq': 'section_name:(' + category + ')', 'page': page, 'sort':sortOrder, 'api-key': self.apiKey}
 		else:
 			params = {'page': page, 'sort':sortOrder, 'api-key': self.apiKey}
-		
+			
 		r = requests.get(self.url + responseFormat, params=params)
+		
+		if(category == 'entertainment'):
+			print r.text
 	
 		if r.status_code != 200:
+			print 'stop %s ' % category
 			logging.error('Http request failed with %s ', r.text)
 			return
 		
@@ -60,86 +65,101 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 			if not doc['web_url'] in self.visitedUrl:
 				self.visitedUrl.add(doc['web_url'])
 				if category:
-					newTuple = (category, text, doc['headline']['main'], doc['web_url'])
+					newsTuple = (category, text, doc['headline']['main'], doc['web_url'])
 				else:
-					newTuple = (text, doc['headline']['main'], doc['web_url'])
-				action(newTuple)
-		
+					newsTuple = (text, doc['headline']['main'], doc['web_url'])
+				action(newsTuple)
 			
 	def Crawl(self, crawlingOption, action, crawlingParams=[]):
 		
 		if crawlingOption == CrawlingOption.TrainingCrawl:
 			page = 0
-			# nytimes only allows 100 pages at this time
+			# nytimes only allows 10 pages per second
 			nPages = 100
 			timeout = 1
 		elif crawlingOption == CrawlingOption.RunningCrawl:
 			nPages = 3
 			timeout = 600
 		
-		c = 0
-					
 		while True:
 			
 			if crawlingOption == CrawlingOption.TrainingCrawl:
-				for category in crawlingParams:	
-					
+				print 'Crawling page %d' % page
+				
+				for category in crawlingParams:
+					print 'crawling %s category on USAToday' % category
 					# crawl the nytimes section for training data
 					self.__Crawl__(page, action, category)
-					print 'Crawling page %d' % page
-				
+					
 				if page == nPages:
 					logging.info('finished with all %d pages', page)
 					break
+				
+				if (len(crawlingParams) >= 9):
+					time.sleep(timeout)
+				else:
+					time.sleep(timeout / 2.0)
 								
 			elif crawlingOption == CrawlingOption.RunningCrawl:
-					for page in range(nPages):
-						self.__Crawl__(page, action)
+				for page in range(nPages):
+					self.__Crawl__(page, action)
+					
+				time.sleep(timeout)
 						
 			page += 1
-			c += 1
-			
-			# crawl every 1 second		
-			if c == 8:
-				c = 0
-				time.sleep(timeout)
+
 					
 class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
 	
 	def __init__(self, newsHost):
 		CrawlingAlgorithm.__init__(self, newsHost)
-		self.timeout = 600
-		# no news older than 7 days 
-		self.days = 7
 		
-	def Crawl(self, crawlingOption, action, crawlingParams=[]):
+	def Crawl(self, crawlingOption, action, categories=[]):
+		
+		if crawlingOption == CrawlingOption.TrainingCrawl:
+			timeout = 1
+		elif crawlingOption == CrawlingOption.RunningCrawl:
+			timeout = 600
 		
 		while  True:
 			
-			# crawl 30 news for now
-			responseFormat = 'json'
-			
-			params = {'days': self.days, 'count':30, 'encoding':responseFormat, 'api_key': self.apiKey}
-			
-			r = requests.get(self.url, params=params)
-			
-			if r.status_code != 200:
-				return
-			
-			response = r.json()
-			
-			# pact news into a text
-			for doc in response['stories']:
-				text = ''
-				if doc['title'] != None:
-					text += doc['title'] + ' '
+			for category in categories:
 				
-				if doc['description'] != None:						
-					text += doc['description']
+				print 'crawling %s category on USAToday' % category 
+				# crawl 30 news for now
+				responseFormat = 'json'
 				
-				if not doc['link'] in self.visitedUrl:
-					self.visitedUrl.add(doc['link'])
-					# self.__FillCrawlerQ__(messageQueue, (text, doc['title'], doc['link']))
+				params = {'section':category, 'count':100, 'encoding':responseFormat, 'api_key': self.apiKey}
 				
-			# crawl every minute
-			time.sleep(self.timeout)
+				r = requests.get(self.url, params=params)
+				
+				if r.status_code != 200:
+					print 'stop %s ' % r.text
+				
+				response = r.json()
+				
+				# pact news into a text
+				for doc in response['stories']:
+					text = ''
+					if doc['title'] != None:
+						text += doc['title'] + ' '
+					
+					if doc['description'] != None:						
+						text += doc['description']
+					
+					if not doc['link'] in self.visitedUrl:
+						
+						if crawlingOption == CrawlingOption.TrainingCrawl:
+							newsTuple = (category, text, doc['title'], doc['link'])
+						else:
+							newsTuple = (text, doc['title'], doc['link'])
+						
+						# print newsTuple	
+						action(newsTuple)
+						self.visitedUrl.add(doc['link'])
+						
+				# crawl every minute
+				time.sleep(timeout)
+				
+			return		
+				

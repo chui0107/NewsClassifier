@@ -8,7 +8,6 @@ class TrainingCrawler:
 		self.newsHost = newsHosts
 		self.categories = categories
 		self.traningSetPath = traningSetPath
-		
 		self.categoriesDict = collections.defaultdict(lambda: [])
 	
 	def __SaveToFile__(self, newsTuple):
@@ -19,13 +18,14 @@ class TrainingCrawler:
 				
 	def __Flush__(self):
 		
-		logging.info('flushing to the disk')
 		for category in self.categoriesDict:
-			
+			logging.info('flushing %s news to the disk', category)
+			print category
 			text = str(self.categoriesDict[category])
 			
-			fileName = self.traningSetPath + category + '.txt'
-			with open(fileName, 'w+') as f:			
+			fileName = self.traningSetPath + category + '1.txt'
+			
+			with open(fileName, 'w+') as f:	
 				f.write(text)
 					
 		self.categoriesDict.clear()

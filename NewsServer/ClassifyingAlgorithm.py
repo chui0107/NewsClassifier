@@ -157,7 +157,7 @@ class NaiveBayes(ClassifyingAlgorithm):
 	def TestClassifier(self, testingSetPath):
 		
 		import os
-		import json
+		import ast
 		
 		for eachClass in os.listdir(testingSetPath):
 			
@@ -171,15 +171,16 @@ class NaiveBayes(ClassifyingAlgorithm):
 			className = fileName[:-4]
 			
 			with open(testingSetPath + eachClass, 'r') as f:
-					
-				news = json.load(f)
+				
+				text = f.read()	
+				newsTuples = ast.literal_eval(text)
 				
 				totalNews = 0
 				mistake = 0
 				
-				for eachnews in news:
-			
-					text = eachnews[1] + ' ' + eachnews[2]
+				for eachNews in newsTuples:
+										
+					text = eachNews[0] + ' ' + eachNews[1]
 					
 					words = self.__TokenizeText__(text)
 					
