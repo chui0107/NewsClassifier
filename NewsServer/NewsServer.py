@@ -111,8 +111,27 @@ def main():
 	
 	if enableTrainingSetCrawler:
 		logging.info('Running traningSetCrawler')
+		'''
 		trainingCrawler = TrainingCrawler(newsHosts, newsCategories, trainingSetPath)
 		trainingCrawler.Crawl()
+		'''
+		
+		from twisted.internet import reactor
+		from scrapy.crawler import Crawler
+		from scrapy import log, signals
+		from NewsScaper import NYTimesScraper
+		from scrapy.utils.project import get_project_settings
+		
+		spider = NYTimesScraper(trainingSetPath=trainingSetPath)
+		settings = get_project_settings()
+		crawler = Crawler(settings)
+		crawler.signals.connect(reactor.stop, signal=signals.spider_closed)
+		crawler.configure()
+		crawler.crawl(spider)
+		crawler.start()
+		# log.start()
+		reactor.run()
+		
 		return
 	
 	naiveBayes = NaiveBayes(messageQueue)

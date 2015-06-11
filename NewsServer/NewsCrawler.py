@@ -1,5 +1,6 @@
 from CrawlingAlgorithm import CrawlingOption
-		
+
+# this class generate seed urls for the NewsScraper		
 class NewsCrawler:
 			
 	def __init__(self, messageQueue):
@@ -30,4 +31,5 @@ class NewsCrawler:
 			self.crawlingThreads[len(self.crawlingThreads) - 1].start()
 		
 	def GetCrawlerThreads(self):
-		return self.crawlingThreads	
+		return self.crawlingThreads
+	
