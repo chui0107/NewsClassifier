@@ -52,23 +52,11 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 		
 		# pact news into a text
 		for doc in response['response']['docs']:
-			text = ''	
-			if doc['snippet'] != None:						
-				text += doc['snippet'] + ' '
-			if doc['lead_paragraph'] != None:
-				text += doc['lead_paragraph'] + ' '
-			if doc['abstract'] != None:
-				text += doc['abstract'] + ' '
-			if doc['headline'] != None and doc['headline']['main'] != None:
-				text += doc['headline']['main']
-			
-			if not doc['web_url'] in self.visitedUrl:
-				self.visitedUrl.add(doc['web_url'])
-				if category:
-					newsTuple = (category, text, doc['headline']['main'], doc['web_url'])
-				else:
-					newsTuple = (text, doc['headline']['main'], doc['web_url'])
+			url = doc['web_url']	
+			if not url in self.visitedUrl:
+				newsTuple = (category, url)
 				action(newsTuple)
+				self.visitedUrl.add(url)
 			
 	def Crawl(self, crawlingOption, action, crawlingParams=[]):
 		
@@ -85,9 +73,8 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 			
 			if crawlingOption == CrawlingOption.TrainingCrawl:
 				print 'Crawling page %d' % page
-				
 				for category in crawlingParams:
-					print 'crawling %s category on USAToday' % category
+					print 'crawling %s category on nyTimes' % category
 					# crawl the nytimes section for training data
 					self.__Crawl__(page, action, category)
 					

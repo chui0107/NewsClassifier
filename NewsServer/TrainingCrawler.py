@@ -12,9 +12,8 @@ class TrainingCrawler:
 	
 	def __SaveToFile__(self, newsTuple):
 		category = newsTuple[0]
-		title = newsTuple[2]
-		text = newsTuple[1]
-		self.categoriesDict[category].append((title, text))
+		url = newsTuple[1]
+		self.categoriesDict[category].append(url)
 				
 	def __Flush__(self):
 		
@@ -23,7 +22,7 @@ class TrainingCrawler:
 			print category
 			text = str(self.categoriesDict[category])
 			
-			fileName = self.traningSetPath + category + '1.txt'
+			fileName = self.traningSetPath + category + '.txt'
 			
 			with open(fileName, 'w+') as f:	
 				f.write(text)
@@ -36,7 +35,6 @@ class TrainingCrawler:
 		for host in self.newsHost:
 			algo = host[1]
 			algo.Crawl(CrawlingOption.TrainingCrawl, self.__SaveToFile__, self.categories)
-			
 			break
 		
 		self.__Flush__()
