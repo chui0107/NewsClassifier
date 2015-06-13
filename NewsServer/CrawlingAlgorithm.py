@@ -38,16 +38,15 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 		responseFormat = '.json'
 		sortOrder = 'newest'
 		
+		categoryString = self.__CategoryToCategoryString__(category)
+		
 		if category:
-			params = {'fq': 'section_name:(' + category + ')', 'page': page, 'sort':sortOrder, 'api-key': self.apiKey}
+			params = {'fq': 'section_name:(' + categoryString + ')', 'page': page, 'sort':sortOrder, 'api-key': self.apiKey}
 		else:
 			params = {'page': page, 'sort':sortOrder, 'api-key': self.apiKey}
 			
 		r = requests.get(self.url + responseFormat, params=params)
 		
-		if(category == 'entertainment'):
-			print r.text
-	
 		if r.status_code != 200:
 			print 'stop %s ' % category
 			logging.error('Http request failed with %s ', r.text)
@@ -93,12 +92,10 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 					
 					try:
 						
-						categoryString = self.__CategoryToCategoryString__(category) 
-					
-						print 'crawling %s category on nyTimes' % categoryString
-					
+						print 'crawling %s seeds on nyTimes' % category
+						
 						# crawl the nytimes section for training data
-						self.__Crawl__(page, action, categoryString)
+						self.__Crawl__(page, action, category)
 					
 					except ValueError:
 						logging.error('unkownn category')

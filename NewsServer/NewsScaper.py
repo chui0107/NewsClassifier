@@ -6,6 +6,7 @@ from scrapy.spider import Spider
 from scrapy.selector import Selector
 from scrapy.contrib.linkextractors import LinkExtractor
 from lxml.html.builder import TITLE, BODY
+from NewsBase import CategoryOption
 
 class nyTimesPage(Item):
 	articleTitle = Field()
@@ -39,6 +40,21 @@ class NYTimesScraper(NewsScraper):
 		self.cookies_seen = set()
 		
 		'''
+				
+	def __ExtractPath__(self, response):
+		# print self.category
+		if self.category == str(CategoryOption.business):
+			title = Selector(response).xpath('//h1[@class="articleHeadline"]/text()').extract() or ''
+			body = Selector(response).xpath('//div[@class="articleBody"]/p/text()').extract() or ''
+			return (title, body)
+		
+		elif self.category == str(CategoryOption.sports) or self.category == str(CategoryOption.technology):
+			title = Selector(response).xpath('//h1[@id="story-heading"]/text()').extract() or ''
+			body = Selector(response).xpath('//div[@id="story-body"]/p/text()').extract() or ''
+			return (title, body)
+		
+		logging.error('unknown category: %s', self.category)
+		raise ValueError('unknown category')
 	
 	def __GetItem__(self, response):
 		
@@ -46,10 +62,19 @@ class NYTimesScraper(NewsScraper):
 		
 		if isinstance(response, HtmlResponse):
 			
-			# if self.category 
-			item['articleTitle'] = Selector(response).xpath('//h1[@class="articleHeadline"]/text()').extract() or ''
+			try:
+				
+				newsTuple = self.__ExtractPath__(response)
+				
+				item['articleTitle'] = newsTuple[0]
 			
-			item['articleBody'] = Selector(response).xpath('//div[@class="articleBody"]/p/text()').extract() or ''
+				item['articleBody'] = newsTuple[1]
+				
+			except ValueError:
+				item['articleTitle'] = ''
+			
+				item['articleBody'] = ''
+			
 				
 		return item
 		
