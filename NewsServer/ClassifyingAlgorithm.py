@@ -124,16 +124,12 @@ class NaiveBayes(ClassifyingAlgorithm):
 			
 			category = fileName[:-4]
 			
-			print eachClass
 			with open(trainingSetPath + eachClass, 'r') as f:
 					
 				text = f.read()
-				
+								
 				words = self.__TokenizeText__(text)
-				
-				if category == 'technology':
-					print words
-				
+						
 				self.__PopulateClass__(category, words)
 					
 		# populate prior probabilities
@@ -165,12 +161,10 @@ class NaiveBayes(ClassifyingAlgorithm):
 			
 			fileName = eachClass.lower()
 				
-			# class file 
-			extension = fileName[-4:]
-			if extension != '.txt':
+			if not fileName.endswith(".txt"):
 				continue
 			
-			className = fileName[:-4]
+			category = fileName[:-4]
 			
 			with open(testingSetPath + eachClass, 'r') as f:
 				
@@ -190,10 +184,10 @@ class NaiveBayes(ClassifyingAlgorithm):
 					
 					totalNews += 1
 					
-					if computedClassName != className:
+					if computedClassName != category:
 						mistake += 1
 						
-			print 'In %s category, the classifier achieved %0.2f accuracy (%d,%d)\n' % (className, (totalNews - mistake) / float(totalNews), (totalNews - mistake), totalNews)	
+			print 'In %s category, the classifier achieved %0.2f accuracy (%d,%d)\n' % (category, (totalNews - mistake) / float(totalNews), (totalNews - mistake), totalNews)	
 	
 	def Classify(self):
 		

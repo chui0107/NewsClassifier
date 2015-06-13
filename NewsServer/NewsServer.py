@@ -111,7 +111,6 @@ def main():
 	newsClassifier = NewsClassifier(naiveBayes, trainingSetPath, testingSetPath)
 	newsClassifier.Train()
 	
-	return
 	if enableTestSet:
 		logging.info('Testing classifier from local files')
 		newsClassifier.TestClassifier()

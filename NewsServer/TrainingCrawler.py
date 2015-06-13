@@ -29,7 +29,7 @@ class TrainingCrawler:
 		
 		# control variables
 		self.enableCrawlSeeds = False
-		self.enableCrawlPage = True
+		self.enableCrawlPage = False
 		
 		self.spiderCounter = 0
 		
