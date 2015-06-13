@@ -3,7 +3,8 @@ import abc
 import time
 from enum import Enum
 import logging
-from unicodedata import category
+from NewsBase import CategoryOption
+from distutils.tests.setuptools_build_ext import if_dl
 
 class CrawlingOption(Enum):
 	TrainingCrawl = 1
@@ -18,7 +19,11 @@ class CrawlingAlgorithm:
 	
 	@abc.abstractmethod
 	def Crawl(self, crawlingOption, action, crawlingParams=[]):
-		return
+		pass
+	
+	@abc.abstractmethod
+	def __CategoryToCategoryString__(self, categoryOption):
+		pass
 	
 
 class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
@@ -57,6 +62,16 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 				newsTuple = (category, url)
 				action(newsTuple)
 				self.visitedUrl.add(url)
+	
+	def __CategoryToCategoryString__(self, categoryOption):
+		if categoryOption == CategoryOption.business:
+			return 'business'
+		elif categoryOption == CategoryOption.technology:
+			return 'technology'
+		elif categoryOption == CategoryOption.sports:
+			return 'sports'
+		logging.error('unknown categoryOpntion %s', categoryOption)
+		raise ValueError('unknown category') 
 			
 	def Crawl(self, crawlingOption, action, crawlingParams=[]):
 		
@@ -73,10 +88,21 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 			
 			if crawlingOption == CrawlingOption.TrainingCrawl:
 				print 'Crawling page %d' % page
+				
 				for category in crawlingParams:
-					print 'crawling %s category on nyTimes' % category
-					# crawl the nytimes section for training data
-					self.__Crawl__(page, action, category)
+					
+					try:
+						
+						categoryString = self.__CategoryToCategoryString__(category) 
+					
+						print 'crawling %s category on nyTimes' % categoryString
+					
+						# crawl the nytimes section for training data
+						self.__Crawl__(page, action, categoryString)
+					
+					except ValueError:
+						logging.error('unkownn category')
+						
 					
 				if page == nPages:
 					logging.info('finished with all %d pages', page)

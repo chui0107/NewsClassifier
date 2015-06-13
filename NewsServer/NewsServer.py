@@ -1,8 +1,7 @@
 import os
 import sys
 import logging
-from NewsBase import NewsHost
-from NewsBase import MessageQueue
+from NewsBase import *
 from NewsCrawler import NewsCrawler
 from RankingAlgorithm import RankingAlgorithm
 from CrawlingAlgorithm import NYtimesCrawlingAlgorithm
@@ -103,22 +102,16 @@ def main():
 	nyTimesHostAlgo = NYtimesCrawlingAlgorithm(nyTimesHost)
 	newsHosts.append((nyTimesHost, nyTimesHostAlgo)) 
 	
-	newsCategories = []
-	newsCategories.append('business')
-	newsCategories.append('sports')
-	newsCategories.append('technology')
-	
 	logging.info('Running traningSetCrawler')
 
-	trainingCrawler = TrainingCrawler(newsHosts, newsCategories, trainingSetPath)
+	trainingCrawler = TrainingCrawler(newsHosts, categories, trainingSetPath)
 	trainingCrawler.Crawl()
-	
-	return
 	
 	naiveBayes = NaiveBayes(messageQueue)
 	newsClassifier = NewsClassifier(naiveBayes, trainingSetPath, testingSetPath)
 	newsClassifier.Train()
 	
+	return
 	if enableTestSet:
 		logging.info('Testing classifier from local files')
 		newsClassifier.TestClassifier()

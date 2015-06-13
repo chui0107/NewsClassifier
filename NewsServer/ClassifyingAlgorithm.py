@@ -110,6 +110,7 @@ class NaiveBayes(ClassifyingAlgorithm):
 	def Train(self, trainingSetPath):
 		
 		import os
+		import ast
 		
 		self.vocabulary = []
 		self.vocabulary.append({})
@@ -117,22 +118,23 @@ class NaiveBayes(ClassifyingAlgorithm):
 		for eachClass in os.listdir(trainingSetPath):
 			
 			fileName = eachClass.lower()
-				
-			# class file 
-			extension = fileName[-4:]
 			
-			if extension != '.txt':
+			if fileName.endswith("seeds.txt") or not fileName.endswith(".txt"):
 				continue
-				
-			className = fileName[:-4]
 			
+			category = fileName[:-4]
+			
+			print eachClass
 			with open(trainingSetPath + eachClass, 'r') as f:
 					
 				text = f.read()
 				
 				words = self.__TokenizeText__(text)
 				
-				self.__PopulateClass__(className, words)
+				if category == 'technology':
+					print words
+				
+				self.__PopulateClass__(category, words)
 					
 		# populate prior probabilities
 		self.vocabulary.append({})

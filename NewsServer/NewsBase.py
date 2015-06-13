@@ -1,3 +1,13 @@
+from enum import Enum
+
+class CategoryOption(Enum):
+	business = 1
+	technology = 2
+	sports = 3
+	unknown = 4
+
+# global categories for the classifier
+categories = [CategoryOption.business, CategoryOption.technology, CategoryOption.sports]
 
 class MessageQueue:
 	def __init__(self):

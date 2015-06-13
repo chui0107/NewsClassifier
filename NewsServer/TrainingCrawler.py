@@ -8,7 +8,7 @@ from scrapy import log, signals
 from NewsScaper import NYTimesScraper
 from scrapy.utils.project import get_project_settings
 from CrawlingAlgorithm import CrawlingOption
-from scrapy.xlib.pydispatch import dispatcher
+from NewsBase import CategoryOption
 		
 class TrainingCrawlerCluster:
 	import collections
@@ -29,7 +29,7 @@ class TrainingCrawler:
 		
 		# control variables
 		self.enableCrawlSeeds = False
-		self.enableCrawlPage = False
+		self.enableCrawlPage = True
 		
 		self.spiderCounter = 0
 		
@@ -63,7 +63,9 @@ class TrainingCrawler:
 					
 			for category in self.trainingCrawlerCluster.categoriesWords:
 			
-				fileName = self.trainingSetPath + category + '.txt'
+				categoryString = self.__CategoryToCategoryString__(category)
+							
+				fileName = self.trainingSetPath + categoryString + '.txt'
 		
 				with open(fileName, 'w+') as f:	
 					f.write(str(self.trainingCrawlerCluster.categoriesWords[category]))				
@@ -76,11 +78,14 @@ class TrainingCrawler:
 	def __FlushSeeds__(self):
 		
 		for category in self.trainingCrawlerCluster.categoriesSeeds:
+			
 			logging.info('flushing %s news to the disk', category)
 			
 			text = str(self.trainingCrawlerCluster.categoriesSeeds[category])
 			
-			fileName = self.trainingSetPath + category + 'Seeds.txt'
+			categoryString = self.__CategoryToCategoryString__(category)
+			
+			fileName = self.trainingSetPath + categoryString + 'Seeds.txt'
 			
 			with open(fileName, 'w+') as f:	
 				f.write(text)
@@ -93,7 +98,7 @@ class TrainingCrawler:
 		try:
 			self.trainingCrawlerCluster.categoriesWordsLock.acquire()
 			
-			if item['articleTitle'] and item['articleBody']:
+			if item['articleTitle'] != '' and item['articleBody'] != '':
 				self.trainingCrawlerCluster.categoriesWords[category].append((item['articleTitle'], item['articleBody']))
 			
 		finally:
@@ -120,20 +125,44 @@ class TrainingCrawler:
 			if not fileName.lower().endswith("seeds.txt"):
 				continue
 			
-			category = fileName[:-9]
+			categoryString = fileName[:-9]
 			
 			with open(self.trainingSetPath + fileName, 'r') as f:
 				
 				logging.info('loading the seeds')
 								
 				try:
-						
+					
 					text = f.read()
+					
+					category = self.__CategoryStringToCategory__(categoryString)
 					
 					self.trainingCrawlerCluster.categoriesSeeds[category] = ast.literal_eval(text) 
 									
 				except:
 					logging.error('Unexpected error: %s' % sys.exc_info()[0]) 
+					
+	def __CategoryStringToCategory__(self, categoryString):
+		
+		if categoryString.lower() == 'business':
+			return CategoryOption.business
+		elif categoryString.lower() == 'technology':
+			return CategoryOption.technology
+		elif categoryString == 'sports':
+			return CategoryOption.sports
+		
+		logging.error('unknown categoryString %s', categoryString)
+		raise ValueError('unknown category')
+	
+	def __CategoryToCategoryString__(self, categoryOption):
+		if categoryOption == CategoryOption.business:
+			return 'business'
+		elif categoryOption == CategoryOption.technology:
+			return 'technology'
+		elif categoryOption == CategoryOption.sports:
+			return 'sports'
+		logging.error('unknown categoryOpntion %s', categoryOption)
+		raise ValueError('unknown category') 
 		
 	def Crawl(self):
 		
@@ -151,6 +180,7 @@ class TrainingCrawler:
 			for category in self.trainingCrawlerCluster.categoriesSeeds:
 				
 				print 'scraping in category: %s' % category
+				
 				self.__ScrapeUrl__(category, self.trainingCrawlerCluster.categoriesSeeds[category])
 			
 			# the script will block here until the spider_closed signal was sent

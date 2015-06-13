@@ -46,6 +46,7 @@ class NYTimesScraper(NewsScraper):
 		
 		if isinstance(response, HtmlResponse):
 			
+			# if self.category 
 			item['articleTitle'] = Selector(response).xpath('//h1[@class="articleHeadline"]/text()').extract() or ''
 			
 			item['articleBody'] = Selector(response).xpath('//div[@class="articleBody"]/p/text()').extract() or ''
