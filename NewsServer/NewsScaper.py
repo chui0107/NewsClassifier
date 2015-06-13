@@ -1,10 +1,11 @@
-import re
+import logging
 from scrapy.item import Item, Field
 from urlparse import urlparse
 from scrapy.http import Request, HtmlResponse
 from scrapy.spider import Spider
 from scrapy.selector import Selector
 from scrapy.contrib.linkextractors import LinkExtractor
+from lxml.html.builder import TITLE, BODY
 
 class nyTimesPage(Item):
 	articleTitle = Field()
@@ -22,15 +23,15 @@ class NYTimesScraper(NewsScraper):
 	def __init__(self, **kw):
 		super(NewsScraper, self).__init__(**kw)
 		
-		self.trainingSetPath = kw.get('trainingSetPath')
+		self.start_urls = kw.get('urls')
+		self.scraperCallBack = kw.get('scraperCallBack')
+		self.category = kw.get('category')
 		
-		self.__FillStartUrls__()
+		for i in range(len(self.start_urls)):
+			if not self.start_urls[i].startswith('http://') and not self.start_urls[i].startswith('https://'):
+				self.start_urls[i] = 'http://%s/' % self.start_urls[i]
 		
-		'''
-		if not url.startswith('http://') and not url.startswith('https://'):
-			url = 'http://%s/' % url
-			
-		self.url = url
+		'''	
 		self.allowed_domains = [re.sub(r'^www\.', '', urlparse(url).hostname)]
 		
 		self.link_extractor = LinkExtractor()
@@ -38,43 +39,18 @@ class NYTimesScraper(NewsScraper):
 		self.cookies_seen = set()
 		
 		'''
-	def __FillStartUrls__(self):
-		import ast
-		import os
-		
-		for eachClass in os.listdir(self.trainingSetPath):
-			
-			fileName = eachClass.lower()
-				
-			# class file 
-			extension = fileName[-4:]
-			
-			if extension != '.txt':
-				continue
-				
-			self.className = fileName[:-4]
-			
-			with open(self.trainingSetPath + eachClass, 'r') as f:
-					
-				text = f.read()
-				
-				self.start_urls = ast.literal_eval(text)
-			
-				return
 	
 	def __GetItem__(self, response):
 		
 		item = nyTimesPage()
-						
+		
 		if isinstance(response, HtmlResponse):
 			
-			title = Selector(response).xpath('//h1[@class="articleHeadline"]/text()').extract()
-			if title:
-				item['articleTitle'] = title[0]
+			item['articleTitle'] = Selector(response).xpath('//h1[@class="articleHeadline"]/text()').extract() or ''
 			
-			body = Selector(response).xpath('//div[@class="articleBody"]/p/text()').extract()
-			if body:
-				item['articleBody'] = body
+			item['articleBody'] = Selector(response).xpath('//div[@class="articleBody"]/p/text()').extract() or ''
+				
+		return item
 		
 	def _extract_requests(self, response):
 		r = []
@@ -98,9 +74,12 @@ class NYTimesScraper(NewsScraper):
 		
 	'''
 
+	# this is the default callback function when scraping finishes, it gets called
 	def parse(self, response):
 		
-		self.__GetItem__(response)
+		item = self.__GetItem__(response)
+		
+		# delegate callback to the crawler
+		self.scraperCallBack((self.category, item))
 		
 		# r.extend(self._extract_requests(response))
-
