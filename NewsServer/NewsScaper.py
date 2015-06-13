@@ -1,4 +1,5 @@
 import logging
+import abc
 from scrapy.item import Item, Field
 from urlparse import urlparse
 from scrapy.http import Request, HtmlResponse
@@ -8,7 +9,7 @@ from scrapy.contrib.linkextractors import LinkExtractor
 from lxml.html.builder import TITLE, BODY
 from NewsBase import CategoryOption
 
-class nyTimesPage(Item):
+class articlePage(Item):
 	articleTitle = Field()
 	articleBody = Field()
 
@@ -17,13 +18,6 @@ class NewsScraper(Spider):
 
 	def __init__(self, **kw):
 		super(NewsScraper, self).__init__(**kw)
-		
-class NYTimesScraper(NewsScraper):
-	name = 'nyTimesScraper'
-
-	def __init__(self, **kw):
-		super(NewsScraper, self).__init__(**kw)
-		
 		self.start_urls = kw.get('urls')
 		self.scraperCallBack = kw.get('scraperCallBack')
 		self.category = kw.get('category')
@@ -31,6 +25,61 @@ class NYTimesScraper(NewsScraper):
 		for i in range(len(self.start_urls)):
 			if not self.start_urls[i].startswith('http://') and not self.start_urls[i].startswith('https://'):
 				self.start_urls[i] = 'http://%s/' % self.start_urls[i]
+	
+	@abc.abstractmethod			
+	def __ExtractPath__(self, response):
+		pass
+	
+	def __GetItem__(self, response):
+		
+		item = articlePage()
+		
+		if isinstance(response, HtmlResponse):
+			
+			try:
+				
+				newsTuple = self.__ExtractPath__(response)
+				
+				item['articleTitle'] = newsTuple[0]
+			
+				item['articleBody'] = newsTuple[1]
+				
+			except ValueError:
+				
+				item['articleTitle'] = ''
+			
+				item['articleBody'] = ''
+				
+		return item
+	
+	# this is the default callback function when scraping finishes, it gets called
+	def parse(self, response):
+		
+		item = self.__GetItem__(response)
+		
+		# delegate callback to the crawler
+		self.scraperCallBack((self.category, item))
+		
+		# r.extend(self._extract_requests(response))
+	
+class USATodayScraper(NewsScraper):
+	name = 'USATodayScraper'
+	
+	def __init__(self, **kw):
+		super(USATodayScraper, self).__init__(**kw)
+	
+	def __ExtractPath__(self, response):
+		
+		# articles layout are similar among all categories on USAtoday
+		title = Selector(response).xpath('//h1[@itemprop="headline"]/text()').extract() or ''
+		body = Selector(response).xpath('//div[@itemprop="articleBody"]/p/text()').extract() or ''
+		return (title, body)
+		
+class NYTimesScraper(NewsScraper):
+	name = 'nyTimesScraper'
+
+	def __init__(self, **kw):
+		super(NYTimesScraper, self).__init__(**kw)
 		
 		'''	
 		self.allowed_domains = [re.sub(r'^www\.', '', urlparse(url).hostname)]
@@ -53,31 +102,9 @@ class NYTimesScraper(NewsScraper):
 			body = Selector(response).xpath('//div[@id="story-body"]/p/text()').extract() or ''
 			return (title, body)
 		
-		logging.error('unknown category: %s', self.category)
+		logging.error('%s.__ExtractPath__: unknown category: %s', self.name, self.category)
 		raise ValueError('unknown category')
-	
-	def __GetItem__(self, response):
-		
-		item = nyTimesPage()
-		
-		if isinstance(response, HtmlResponse):
 			
-			try:
-				
-				newsTuple = self.__ExtractPath__(response)
-				
-				item['articleTitle'] = newsTuple[0]
-			
-				item['articleBody'] = newsTuple[1]
-				
-			except ValueError:
-				item['articleTitle'] = ''
-			
-				item['articleBody'] = ''
-			
-				
-		return item
-		
 	def _extract_requests(self, response):
 		r = []
 		if isinstance(response, HtmlResponse):
@@ -99,13 +126,3 @@ class NYTimesScraper(NewsScraper):
 		return [Request(self.url, callback=self.parse, dont_filter=True)]
 		
 	'''
-
-	# this is the default callback function when scraping finishes, it gets called
-	def parse(self, response):
-		
-		item = self.__GetItem__(response)
-		
-		# delegate callback to the crawler
-		self.scraperCallBack((self.category, item))
-		
-		# r.extend(self._extract_requests(response))

@@ -1,5 +1,6 @@
 import abc
-from cgitb import text
+import logging
+import sys
 
 class ClassifyingAlgorithm:
 	def __init__(self, messageQueue):
@@ -22,6 +23,8 @@ class ClassifyingAlgorithm:
 		return
 
 class NaiveBayes(ClassifyingAlgorithm):
+	
+	className = 'NaiveBayes'
 	
 	def __init__(self, messageQueue):
 		ClassifyingAlgorithm.__init__(self, messageQueue)
@@ -127,10 +130,11 @@ class NaiveBayes(ClassifyingAlgorithm):
 			with open(trainingSetPath + eachClass, 'r') as f:
 					
 				text = f.read()
-								
+				
 				words = self.__TokenizeText__(text)
-						
+				
 				self.__PopulateClass__(category, words)
+					
 					
 		# populate prior probabilities
 		self.vocabulary.append({})
@@ -166,6 +170,9 @@ class NaiveBayes(ClassifyingAlgorithm):
 			
 			category = fileName[:-4]
 			
+			# if category != 'categoryoption.business':
+				# continue
+			
 			with open(testingSetPath + eachClass, 'r') as f:
 				
 				text = f.read()	
@@ -175,17 +182,19 @@ class NaiveBayes(ClassifyingAlgorithm):
 				mistake = 0
 				
 				for eachNews in newsTuples:
-										
-					text = eachNews[0] + ' ' + eachNews[1]
 					
-					words = self.__TokenizeText__(text)
+					try:
+						
+						words = self.__TokenizeText__(str(eachNews))
 					
-					computedClassName = self.__ComputeClass__(words)
+						computedClassName = self.__ComputeClass__(words)
+							
+						totalNews += 1
 					
-					totalNews += 1
-					
-					if computedClassName != category:
-						mistake += 1
+						if computedClassName != category:
+							mistake += 1
+					except:
+						logging.error('%s.TestClassifier: %s', self.className, sys.exc_info()[0])
 						
 			print 'In %s category, the classifier achieved %0.2f accuracy (%d,%d)\n' % (category, (totalNews - mistake) / float(totalNews), (totalNews - mistake), totalNews)	
 	

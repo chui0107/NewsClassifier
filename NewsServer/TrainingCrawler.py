@@ -5,7 +5,7 @@ import threading
 from twisted.internet import reactor
 from scrapy.crawler import Crawler
 from scrapy import log, signals
-from NewsScaper import NYTimesScraper
+from NewsScaper import *
 from scrapy.utils.project import get_project_settings
 from CrawlingAlgorithm import CrawlingOption
 from NewsBase import CategoryOption
@@ -128,6 +128,7 @@ class TrainingCrawler:
 	# scrape the url 
 	def __ScrapeUrl__(self, category, urls):
 		
+		'''
 		spider = NYTimesScraper(category=category, urls=urls, scraperCallBack=self.__ScrapeUrlCallBack__)
 		settings = get_project_settings()
 		crawler = Crawler(settings)
@@ -135,6 +136,16 @@ class TrainingCrawler:
 		crawler.configure()
 		crawler.crawl(spider)
 		crawler.start()
+		'''
+		
+		spider = USATodayScraper(category=category, urls=urls, scraperCallBack=self.__ScrapeUrlCallBack__)
+		settings = get_project_settings()
+		crawler = Crawler(settings)
+		crawler.signals.connect(self.__SpiderQuitEvent__, signal=signals.spider_closed)
+		crawler.configure()
+		crawler.crawl(spider)
+		crawler.start()
+
 		self.spiderCounter += 1
 				
 	def Crawl(self):
