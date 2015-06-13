@@ -27,8 +27,9 @@ class TrainingCrawler:
 		self.categories = categories
 		self.trainingSetPath = trainingSetPath 
 		
+		# control variables
 		self.enableCrawlSeeds = False
-		self.enableCrawlPage = True
+		self.enableCrawlPage = False
 		
 		self.spiderCounter = 0
 		
@@ -91,8 +92,9 @@ class TrainingCrawler:
 		
 		try:
 			self.trainingCrawlerCluster.categoriesWordsLock.acquire()
-					
-			self.trainingCrawlerCluster.categoriesWords[category].append((item['articleTitle'], item['articleBody']))
+			
+			if item['articleTitle'] and item['articleBody']:
+				self.trainingCrawlerCluster.categoriesWords[category].append((item['articleTitle'], item['articleBody']))
 			
 		finally:
 			self.trainingCrawlerCluster.categoriesWordsLock.release()	
