@@ -1,13 +1,13 @@
 import logging
 import abc
 from scrapy.item import Item, Field
-from urlparse import urlparse
 from scrapy.http import Request, HtmlResponse
 from scrapy.spider import Spider
 from scrapy.selector import Selector
 from scrapy.contrib.linkextractors import LinkExtractor
 from lxml.html.builder import TITLE, BODY
 from NewsBase import CategoryOption
+import sys
 
 class articlePage(Item):
 	articleTitle = Field()
@@ -18,14 +18,7 @@ class NewsScraper(Spider):
 
 	def __init__(self, **kw):
 		super(NewsScraper, self).__init__(**kw)
-		self.start_urls = kw.get('urls')
-		self.scraperCallBack = kw.get('scraperCallBack')
-		self.category = kw.get('category')
 		
-		for i in range(len(self.start_urls)):
-			if not self.start_urls[i].startswith('http://') and not self.start_urls[i].startswith('https://'):
-				self.start_urls[i] = 'http://%s/' % self.start_urls[i]
-	
 	@abc.abstractmethod			
 	def __ExtractPath__(self, response):
 		pass
@@ -33,6 +26,8 @@ class NewsScraper(Spider):
 	def __GetItem__(self, response):
 		
 		item = articlePage()
+		item['articleTitle'] = None	
+		item['articleBody'] = None
 		
 		if isinstance(response, HtmlResponse):
 			
@@ -40,16 +35,19 @@ class NewsScraper(Spider):
 				
 				newsTuple = self.__ExtractPath__(response)
 				
-				item['articleTitle'] = newsTuple[0]
-			
-				item['articleBody'] = newsTuple[1]
+				if len(newsTuple[0]):
+					item['articleTitle'] = newsTuple[0][0] 
 				
-			except ValueError:
-				
-				item['articleTitle'] = ''
-			
-				item['articleBody'] = ''
-				
+				if len(newsTuple[1]):
+					item['articleBody'] = newsTuple[1][0]
+		
+			except:
+				item['articleTitle'] = None	
+				item['articleBody'] = None
+				logging.exception('%s.__GetItem__: exception', self.name)
+		else:
+			logging.info('%s.__GetItem__: reponse is not of type HtmlResponse', self.name)
+					
 		return item
 	
 	# this is the default callback function when scraping finishes, it gets called
@@ -58,10 +56,23 @@ class NewsScraper(Spider):
 		item = self.__GetItem__(response)
 		
 		# delegate callback to the crawler
-		self.scraperCallBack((self.category, item))
+		self.scraperCallBack(self.category, item)
 		
 		# r.extend(self._extract_requests(response))
+		
+	def SetUrls(self, urls):
+		self.start_urls = urls
+		for i in range(len(self.start_urls)):
+			if not self.start_urls[i].startswith('http://') and not self.start_urls[i].startswith('https://'):
+				self.start_urls[i] = 'http://%s/' % self.start_urls[i]
 	
+	
+	def SetCategory(self, category):
+		self.category = category
+		
+	def SetScraperCallBack(self, callBack):
+		self.scraperCallBack = callBack
+		
 class USATodayScraper(NewsScraper):
 	name = 'USATodayScraper'
 	
@@ -70,10 +81,18 @@ class USATodayScraper(NewsScraper):
 	
 	def __ExtractPath__(self, response):
 		
+		# NOTE that the xpath selector returns a list
 		# articles layout are similar among all categories on USAtoday
-		title = Selector(response).xpath('//h1[@itemprop="headline"]/text()').extract() or ''
-		body = Selector(response).xpath('//div[@itemprop="articleBody"]/p/text()').extract() or ''
-		return (title, body)
+		if self.category == str(CategoryOption.business) or self.category == str(CategoryOption.sports) or self.category == str(CategoryOption.technology):
+			
+			title = Selector(response).xpath('//h1[@itemprop="headline"]/text()').extract()
+			body = Selector(response).xpath('//div[@itemprop="articleBody"]/p/text()').extract()
+			
+			return (title, body)
+		
+		logging.error('%s.__ExtractPath__: unknown category: %s', self.name, self.category)
+		raise ValueError('unknown category')
+		
 		
 class NYTimesScraper(NewsScraper):
 	name = 'nyTimesScraper'
@@ -91,15 +110,16 @@ class NYTimesScraper(NewsScraper):
 		'''
 				
 	def __ExtractPath__(self, response):
-		# print self.category
+		
+		# NOTE that the xpath selector returns a list
 		if self.category == str(CategoryOption.business):
-			title = Selector(response).xpath('//h1[@class="articleHeadline"]/text()').extract() or ''
-			body = Selector(response).xpath('//div[@class="articleBody"]/p/text()').extract() or ''
+			title = Selector(response).xpath('//h1[@class="articleHeadline"]/text()').extract()
+			body = Selector(response).xpath('//div[@class="articleBody"]/p/text()').extract()
 			return (title, body)
 		
 		elif self.category == str(CategoryOption.sports) or self.category == str(CategoryOption.technology):
-			title = Selector(response).xpath('//h1[@id="story-heading"]/text()').extract() or ''
-			body = Selector(response).xpath('//div[@id="story-body"]/p/text()').extract() or ''
+			title = Selector(response).xpath('//h1[@id="story-heading"]/text()').extract()
+			body = Selector(response).xpath('//div[@id="story-body"]/p/text()').extract()
 			return (title, body)
 		
 		logging.error('%s.__ExtractPath__: unknown category: %s', self.name, self.category)

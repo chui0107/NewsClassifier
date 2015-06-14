@@ -33,7 +33,7 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 	def __init__(self, newsHost):
 		CrawlingAlgorithm.__init__(self, newsHost)
 		
-	def __Crawl__(self, page, action, category=None):
+	def __Crawl__(self, page, domain, action, category=None):
 		
 		'''
 			{u'status': u'OK', u'response': {u'docs': [], u'meta': {u'hits': 0, u'offset': 0, u'time': 54}}, u'copyright': u'Copyright (c) 2013 The New York Times Company.  All Rights Reserved.'}
@@ -66,8 +66,8 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 		# pact news into a text
 		for doc in response['response']['docs']:
 			url = doc['web_url']	
-			if not url in self.visitedUrl:
-				newsTuple = (category, url)
+			if url and url not in self.visitedUrl:
+				newsTuple = (category, domain, url)
 				action(newsTuple)
 				self.visitedUrl.add(url)
 	
@@ -81,7 +81,7 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 		logging.error('unknown categoryOpntion %s', categoryOption)
 		raise ValueError('unknown category') 
 			
-	def Crawl(self, crawlingOption, action, crawlingParams=[]):
+	def Crawl(self, crawlingOption, domain, action, crawlingParams=[]):
 		
 		if crawlingOption == CrawlingOption.TrainingCrawl:
 			page = 0
@@ -95,7 +95,7 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 		while True:
 			
 			if crawlingOption == CrawlingOption.TrainingCrawl:
-				print 'Crawling page %d' % page
+				print 'crawling page %d' % page
 				
 				for category in crawlingParams:
 					
@@ -104,7 +104,7 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 						print 'crawling %s seeds on nyTimes' % category
 						
 						# crawl the nytimes section for training data
-						self.__Crawl__(page, action, category)
+						self.__Crawl__(page, domain, action, category)
 					
 					except ValueError:
 						logging.error('unkownn category')
@@ -145,7 +145,7 @@ class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
 		logging.error('unknown categoryOpntion %s', categoryOption)
 		raise ValueError('unknown category') 
 		
-	def __Crawl__(self, action, category=None):
+	def __Crawl__(self, domain, action, category=None):
 		
 		responseFormat = 'json'
 		
@@ -169,12 +169,12 @@ class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
 		# pact news into a text
 		for doc in response['stories']:
 			url = doc['link']
-			if not url in self.visitedUrl:
-				newsTuple = (category, url)
+			if url and url not in self.visitedUrl:
+				newsTuple = (category, domain, url)
 				action(newsTuple)
 				self.visitedUrl.add(url)
 		
-	def Crawl(self, crawlingOption, action, categories=[]):
+	def Crawl(self, crawlingOption, domain, action, categories=[]):
 		
 		if crawlingOption == CrawlingOption.TrainingCrawl:
 			timeout = 1
@@ -190,7 +190,7 @@ class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
 					print 'crawling %s category on USAToday' % category
 				
 					# crawl the nytimes section for training data
-					self.__Crawl__(action, category)
+					self.__Crawl__(domain, action, category)
 					
 					time.sleep(timeout)
 						

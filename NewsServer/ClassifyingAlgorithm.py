@@ -113,7 +113,6 @@ class NaiveBayes(ClassifyingAlgorithm):
 	def Train(self, trainingSetPath):
 		
 		import os
-		import ast
 		
 		self.vocabulary = []
 		self.vocabulary.append({})
