@@ -197,18 +197,23 @@ class TrainingCrawler:
 				
 		# the script will block here until the spider_closed signal was sent
 		reactor.run()
+		
+	def __CrawlSeed__(self):
+		
+		for host in self.newsHosts:
+			
+			domain = GetDomainName(host.url)
+			algo = self.trainingCrawlerCluster.hostToCrawlerDict[domain]
+			algo.Crawl(CrawlingOption.TrainingCrawl, domain, self.__SeedingCallBack__, self.categories)
+		
+		self.__FlushSeeds__()
+		
 				
 	def Crawl(self):
 		
 		if self.enableCrawlSeeds:
+			self.__CrawlSeed__()
 			
-			for host in self.newsHosts:
-				domain = GetDomainName(host.url)
-				algo = self.trainingCrawlerCluster.hostToCrawlerDict[domain]
-				algo.Crawl(CrawlingOption.TrainingCrawl, domain, self.__SeedingCallBack__, self.categories)
-		
-			self.__FlushSeeds__()
-		
 		if self.enableCrawlPage:
 			self.__ScrapeUrl__()
 			
