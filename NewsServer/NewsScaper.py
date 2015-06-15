@@ -13,6 +13,7 @@ class articlePage(Item):
 	articleTitle = Field()
 	articleBody = Field()
 
+# the pass in urls have to follow the same pattern to be scraped
 class NewsScraper(Spider):
 	name = 'NewsScraper'
 
@@ -34,12 +35,8 @@ class NewsScraper(Spider):
 			try:
 				
 				newsTuple = self.__ExtractPath__(response)
-				
-				if len(newsTuple[0]):
-					item['articleTitle'] = newsTuple[0][0] 
-				
-				if len(newsTuple[1]):
-					item['articleBody'] = newsTuple[1][0]
+				item['articleTitle'] = newsTuple[0] 
+				item['articleBody'] = newsTuple[1]
 		
 			except:
 				item['articleTitle'] = None	
@@ -115,15 +112,17 @@ class NYTimesScraper(NewsScraper):
 		if self.category == str(CategoryOption.business):
 			title = Selector(response).xpath('//h1[@class="articleHeadline"]/text()').extract()
 			body = Selector(response).xpath('//div[@class="articleBody"]/p/text()').extract()
-			return (title, body)
-		
+			
+			
 		elif self.category == str(CategoryOption.sports) or self.category == str(CategoryOption.technology):
 			title = Selector(response).xpath('//h1[@id="story-heading"]/text()').extract()
 			body = Selector(response).xpath('//div[@id="story-body"]/p/text()').extract()
-			return (title, body)
 		
-		logging.error('%s.__ExtractPath__: unknown category: %s', self.name, self.category)
-		raise ValueError('unknown category')
+		else:
+			logging.error('%s.__ExtractPath__: unknown category: %s', self.name, self.category)
+			raise ValueError('unknown category')
+		
+		return (title, body)
 			
 	def _extract_requests(self, response):
 		r = []

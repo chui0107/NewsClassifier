@@ -157,7 +157,7 @@ class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
 			logging.error('%s.__Crawl__: unknown category', self.className)
 			return
 		
-		params = {'section':categoryString, 'count':100, 'encoding':responseFormat, 'api_key': self.apiKey}
+		params = {'section':categoryString, 'count':200, 'encoding':responseFormat, 'api_key': self.apiKey}
 		
 		r = requests.get(self.url, params=params)
 		

@@ -1,9 +1,8 @@
 import os
 import sys
 import logging
-from NewsBase import *
+from NewsBase import MessageQueue, NewsHost, categories
 from NewsCrawler import NewsCrawler
-from RankingAlgorithm import RankingAlgorithm
 from ClassifyingAlgorithm import NaiveBayes
 from NewsRanker import NewsRanker
 from NewsClassifier import NewsClassifier

@@ -10,8 +10,7 @@ from NewsScaper import *
 from scrapy.utils.project import get_project_settings
 from CrawlingAlgorithm import CrawlingOption
 from NewsBase import CategoryOption
-from CrawlingAlgorithm import NYtimesCrawlingAlgorithm
-from CrawlingAlgorithm import USATodayCrawlingAlgorithm
+from CrawlingAlgorithm import NYtimesCrawlingAlgorithm, USATodayCrawlingAlgorithm
 from Util import GetDomainName
 
 class TrainingCrawlerCluster:
@@ -91,25 +90,27 @@ class TrainingCrawler:
 		domain = newsTuple[1]
 		url = newsTuple[2]
 		
-		if domain not in self.trainingCrawlerCluster.categoriesSeeds[category]:
-			self.trainingCrawlerCluster.categoriesSeeds[category][domain] = []
+		categoryString = str(category)
+	
+		if domain not in self.trainingCrawlerCluster.categoriesSeeds[categoryString]:
+			self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain] = []
 		
-		self.trainingCrawlerCluster.categoriesSeeds[category][domain].append(url)
+		self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain].append(url)
 	
 	# flush the self.categoriesWords to disk
 	def __FlushWords__(self):
 		
 		try:
 			self.trainingCrawlerCluster.categoriesWordsLock.acquire()
-					
-			for category in self.trainingCrawlerCluster.categoriesWords:
-										
-				fileName = self.trainingSetPath + str(category) + '.txt'
-				
-				logging.info('flushing %s to file %s', category, fileName)
-		
-				with open(fileName, 'w+') as f:	
-					f.write(str(self.trainingCrawlerCluster.categoriesWords[category]))				
+			
+			fileName = self.trainingSetPath + 'Words.txt'
+			
+			logging.info('flushing to file %s', fileName)
+			
+			text = json.dumps(self.trainingCrawlerCluster.categoriesWords)
+						
+			with open(fileName, 'w+') as f:	
+				f.write(text)
 		
 		finally:
 			self.trainingCrawlerCluster.categoriesWordsLock.release()	
@@ -118,36 +119,29 @@ class TrainingCrawler:
 	# fill the starting urls for the scraper
 	def __FillSeeds__(self):
 
-		for fileName in os.listdir(self.trainingSetPath):
+		fileName = self.trainingSetPath + 'Seeds.txt' 
+		with open(fileName, 'r') as f:
 			
-			if not fileName.lower().endswith("seeds.txt"):
-				continue
-			
-			category = fileName[:-9]
-			
-			with open(self.trainingSetPath + fileName, 'r') as f:
-				
-				logging.info('loading the seeds from %s', fileName)
+			logging.info('loading the seeds from %s', fileName)
 								
-				try:
+			try:
+				
+				self.trainingCrawlerCluster.categoriesSeeds = json.load(f)
+				
+			except:
+				logging.exception('%s.__ScrapeUrlCallBack__: exception', self.className) 
 					
-					self.trainingCrawlerCluster.categoriesSeeds[category] = json.load(f)
-														
-				except:
-					logging.error('Unexpected error: %s' % sys.exc_info()[0]) 
-		
 	# flush the categoriesSeeds to disk
 	def __FlushSeeds__(self):
 		
-		for category in self.trainingCrawlerCluster.categoriesSeeds:
+		text = json.dumps(self.trainingCrawlerCluster.categoriesSeeds)
 			
-			text = json.dumps(self.trainingCrawlerCluster.categoriesSeeds[category])
+		fileName = self.trainingSetPath + 'Seeds.txt'
 			
-			fileName = self.trainingSetPath + str(category) + 'Seeds.txt'
+		with open(fileName, 'a+') as f:	
+			f.write(text)
+		
 			
-			with open(fileName, 'a+') as f:	
-				f.write(text)
-	
 	# populate the category words one by one
 	def __ScrapeUrlCallBack__(self, category, item):
 						
@@ -155,13 +149,19 @@ class TrainingCrawler:
 			self.trainingCrawlerCluster.categoriesWordsLock.acquire()
 			
 			title = item.get('articleTitle')
+			
 			body = item.get('articleBody')
 			
-			if title and body:
-				self.trainingCrawlerCluster.categoriesWords[category].append((title, body))
+			# Note they are lists
+			if len(title):
+				self.trainingCrawlerCluster.categoriesWords[category].append(title[0])
+				
+			if len(body):
+				self.trainingCrawlerCluster.categoriesWords[category].append(body[0])
+				
 				
 		except:
-			logging.exception('%s.__ScrapeUrlCallBack__:: exception', self.className)	
+			logging.exception('%s.__ScrapeUrlCallBack__: exception', self.className)	
 		finally:
 			self.trainingCrawlerCluster.categoriesWordsLock.release()
 	
