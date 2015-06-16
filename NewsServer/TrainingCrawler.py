@@ -1,6 +1,4 @@
 import logging
-import sys
-import os
 import json
 import threading
 from twisted.internet import reactor
@@ -54,7 +52,6 @@ class TrainingCrawler:
 		
 		for host in self.newsHosts:
 			try:
-				
 				self.trainingCrawlerCluster.CreateCrawler(host)
 				
 			except ValueError:
@@ -66,7 +63,7 @@ class TrainingCrawler:
 		
 		# control variables
 		self.enableCrawlSeeds = False
-		self.enableCrawlPage = True
+		self.enableCrawlPage = False
 		
 		self.spiderCounter = 0
 		
@@ -138,7 +135,7 @@ class TrainingCrawler:
 			
 		fileName = self.trainingSetPath + 'Seeds.txt'
 			
-		with open(fileName, 'a+') as f:	
+		with open(fileName, 'w') as f:	
 			f.write(text)
 		
 			
@@ -153,12 +150,10 @@ class TrainingCrawler:
 			body = item.get('articleBody')
 			
 			# Note they are lists
-			if len(title):
-				self.trainingCrawlerCluster.categoriesWords[category].append(title[0])
-				
-			if len(body):
-				self.trainingCrawlerCluster.categoriesWords[category].append(body[0])
-				
+			title = title[0] if len(title) else ''
+			body = body[0] if len(body) else ''
+			
+			self.trainingCrawlerCluster.categoriesWords[category].append((title, body))				
 				
 		except:
 			logging.exception('%s.__ScrapeUrlCallBack__: exception', self.className)	

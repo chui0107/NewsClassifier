@@ -54,18 +54,30 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 		else:
 			params = {'page': page, 'sort':sortOrder, 'api-key': self.apiKey}
 			
-		r = requests.get(self.url + responseFormat, params=params)
+		try:
+			r = requests.get(self.url + responseFormat, params=params)
 		
-		if r.status_code != 200:
-			print 'stop %s ' % category
-			logging.error('Http request failed with %s ', r.text)
+			if r.status_code != 200:
+				logging.error('%s.__Crawl__: %s', r)
+				return
+		
+			response = r.json()
+			
+		except:
+			logging.exception('%s.__Crawl__: exception')
 			return
 		
-		response = r.json()
+		# pact news into a tuple
+		if response['response'] == None:
+			logging.error('%s.__Crawl__: response doesn\'t exist', self.className)
+			return;
 		
-		# pact news into a text
+		if response['response']['docs'] == None:
+			logging.error('%s.__Crawl__: docs doesn\'t exist', self.className)
+			return;
+		
 		for doc in response['response']['docs']:
-			url = doc['web_url']	
+			url = doc.get('web_url')
 			if url and url not in self.visitedUrl:
 				newsTuple = (category, domain, url)
 				action(newsTuple)
@@ -142,7 +154,8 @@ class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
 			return 'tech'
 		elif categoryOption == CategoryOption.sports:
 			return 'sports'
-		logging.error('unknown categoryOpntion %s', categoryOption)
+		
+		logging.error('%s.__CategoryToCategoryString__: unknown categoryOpntion %s', self.className, categoryOption)
 		raise ValueError('unknown category') 
 		
 	def __Crawl__(self, domain, action, category=None):
@@ -152,23 +165,28 @@ class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
 		try:
 			categoryString = self.__CategoryToCategoryString__(category)
 			
-		except ValueError:
-			
-			logging.error('%s.__Crawl__: unknown category', self.className)
+		except:
+			logging.exception('%s.__Crawl__: exception', self.className)
 			return
 		
 		params = {'section':categoryString, 'count':200, 'encoding':responseFormat, 'api_key': self.apiKey}
 		
-		r = requests.get(self.url, params=params)
+		try:
+			r = requests.get(self.url, params=params)
 		
-		if r.status_code != 200:
-			print 'stop %s ' % r.text
+			if r.status_code != 200:
+				logging.error('%s.__Crawl__:%s', self.className, r)
+				return
 		
-		response = r.json()
-		
-		# pact news into a text
-		for doc in response['stories']:
-			url = doc['link']
+			response = r.json()
+			
+		except:
+			logging.exception('%s.__Crawl__: exception')
+			return
+
+		# pact news into a tuple
+		for doc in response.get('stories'):
+			url = doc.get('link')
 			if url and url not in self.visitedUrl:
 				newsTuple = (category, domain, url)
 				action(newsTuple)

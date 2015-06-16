@@ -1,6 +1,7 @@
 import abc
 import logging
-import sys
+import json
+from NewsBase import categories
 
 class ClassifyingAlgorithm:
 	def __init__(self, messageQueue):
@@ -112,29 +113,27 @@ class NaiveBayes(ClassifyingAlgorithm):
 			
 	def Train(self, trainingSetPath):
 		
-		import os
-		
 		self.vocabulary = []
 		self.vocabulary.append({})
 		
-		for eachClass in os.listdir(trainingSetPath):
+		fileName = trainingSetPath + 'Words.txt' 
+		with open(fileName, 'r') as f:
 			
-			fileName = eachClass.lower()
-			
-			if fileName.endswith("seeds.txt") or not fileName.endswith(".txt"):
-				continue
-			
-			category = fileName[:-4]
-			
-			with open(trainingSetPath + eachClass, 'r') as f:
-					
-				text = f.read()
+			logging.info('loading training data from %s', fileName)
+								
+			try:
 				
-				words = self.__TokenizeText__(text)
+				categories = json.load(f)
 				
-				self.__PopulateClass__(category, words)
+				for category in categories:
 					
+					words = self.__TokenizeText__(str(categories[category]))
 					
+					self.__PopulateClass__(category, words)
+				
+			except:
+				logging.exception('%s.Train: exception', self.className) 
+		
 		# populate prior probabilities
 		self.vocabulary.append({})
 		
@@ -157,34 +156,32 @@ class NaiveBayes(ClassifyingAlgorithm):
 							
 	def TestClassifier(self, testingSetPath):
 		
-		import os
-		import ast
-		
-		for eachClass in os.listdir(testingSetPath):
+		fileName = testingSetPath + 'Words.txt'
+						
+		with open(fileName, 'r') as f:
 			
-			fileName = eachClass.lower()
-				
-			if not fileName.endswith(".txt"):
-				continue
-			
-			category = fileName[:-4]
-			
-			# if category != 'categoryoption.business':
-				# continue
-			
-			with open(testingSetPath + eachClass, 'r') as f:
-				
-				text = f.read()	
-				newsTuples = ast.literal_eval(text)
+			try:	
+				categories = json.load(f)
+			except:
+				logging.exception('%s.TestClassifier: exception', self.className)
+				return
+											
+			for category in categories:
 				
 				totalNews = 0
 				mistake = 0
+			
+				newsTuples = categories[category]
 				
-				for eachNews in newsTuples:
+				for newsTuple in newsTuples:
 					
 					try:
+						title = newsTuple[0] if len(newsTuple[0]) else ''
+						body = newsTuple[1] if len(newsTuple[1]) else ''
 						
-						words = self.__TokenizeText__(str(eachNews))
+						text = title + ' ' + body
+						
+						words = self.__TokenizeText__(text)
 					
 						computedClassName = self.__ComputeClass__(words)
 							
@@ -193,15 +190,14 @@ class NaiveBayes(ClassifyingAlgorithm):
 						if computedClassName != category:
 							mistake += 1
 					except:
-						logging.error('%s.TestClassifier: %s', self.className, sys.exc_info()[0])
-						
-			print 'In %s category, the classifier achieved %0.2f accuracy (%d,%d)\n' % (category, (totalNews - mistake) / float(totalNews), (totalNews - mistake), totalNews)	
-	
+						logging.exception('%s.TestClassifier: exception', self.className)
+						return
+							
+				print 'In %s category, the classifier achieved %0.2f accuracy (%d,%d)\n' % (category, (totalNews - mistake) / float(totalNews), (totalNews - mistake), totalNews)
+			
 	def Classify(self):
 		
 		while True:
 			rankerTuple = self.__ExtractCrawlerQ__()
 			self.__FillRankerQ__(rankerTuple)
 			
-	
-	

@@ -111,7 +111,7 @@ def main():
 	newsCrawler = NewsCrawler(messageQueue)
 	
 	for newsHost in newsHosts:
-		newsCrawler.AddAlgorithm(newsHost[1])
+		newsCrawler.AddAlgorithm(newsHost)
 	
 	rankingAlgorithm = RankingAlgorithm()
 	
@@ -141,8 +141,6 @@ def main():
 	for threads in allThreads:
 		for thread in threads:
 			thread.join()
-			
-					
 	
 if __name__ == "__main__":
 	main()		
