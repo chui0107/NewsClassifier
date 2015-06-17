@@ -142,12 +142,12 @@ class NYTimesScraper(NewsScraper):
 	'''
 
 # the crawler is used to crawler links on a page to feed seeds.txt	
-class WebPageScraper(NewsScraper):
+class PageLinkScraper(NewsScraper):
 	
-	name = 'WebPageScraper'
+	name = 'PageLinkScraper'
 		
 	def __init__(self, **kw):
-		super(WebPageScraper, self).__init__(**kw)
+		super(PageLinkScraper, self).__init__(**kw)
 		
 		# r.extend(self._extract_requests(response))
 		
