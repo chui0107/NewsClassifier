@@ -4,12 +4,13 @@ import threading
 from twisted.internet import reactor
 from scrapy.crawler import Crawler
 from scrapy import log, signals
-from NewsScaper import *
+from NewsScaper import NYTimesScraper, USATodayScraper, WebPageScraper
 from scrapy.utils.project import get_project_settings
 from CrawlingAlgorithm import CrawlingOption
 from NewsBase import CategoryOption
 from CrawlingAlgorithm import NYtimesCrawlingAlgorithm, USATodayCrawlingAlgorithm
 from Util import GetDomainName
+import csv
 
 class TrainingCrawlerCluster:
 	import collections
@@ -18,6 +19,8 @@ class TrainingCrawlerCluster:
 	hostToScraperDict = collections.defaultdict()
 	
 	categoriesSeeds = collections.defaultdict(lambda:{})
+	categoriesSeedsLock = threading.Lock()
+	
 	categoriesWords = collections.defaultdict(lambda:[])
 	categoriesWordsLock = threading.Lock()
 		
@@ -39,7 +42,7 @@ class TrainingCrawlerCluster:
 		elif domain.lower() == 'api.nytimes.com':
 			return NYTimesScraper()
 		else:
-			raise ValueError('Unknown domain')
+			return WebPageScraper()
 			
 class TrainingCrawler:
 	
@@ -62,7 +65,7 @@ class TrainingCrawler:
 		self.trainingSetPath = trainingSetPath 
 		
 		# control variables
-		self.enableCrawlSeeds = False
+		self.enableCrawlSeeds = True
 		self.enableCrawlPage = False
 		
 		self.spiderCounter = 0
@@ -89,10 +92,37 @@ class TrainingCrawler:
 		
 		categoryString = str(category)
 	
-		if domain not in self.trainingCrawlerCluster.categoriesSeeds[categoryString]:
-			self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain] = []
+		try:
+			self.trainingCrawlerCluster.categoriesSeedsLock.acquire()
 		
-		self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain].append(url)
+			if domain not in self.trainingCrawlerCluster.categoriesSeeds[categoryString]:
+				self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain] = []
+		
+			self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain].append(url)
+		
+		finally:
+			self.trainingCrawlerCluster.categoriesSeedsLock.release()	
+		
+	# used by the scraper to crawl a section page. xxx.com/business
+	def __SeedingsCallBack__(self, newsTuple):
+		category = newsTuple[0]
+		domain = newsTuple[1]
+		urls = newsTuple[2]
+		
+		categoryString = str(category)
+		
+		try:
+			self.trainingCrawlerCluster.categoriesSeedsLock.acquire()
+			
+			if domain not in self.trainingCrawlerCluster.categoriesSeeds[categoryString]:
+				self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain] = []
+			
+			for url in urls:	
+				self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain].append(url)
+
+		finally:
+			self.trainingCrawlerCluster.categoriesSeedsLock.release()	
+
 	
 	# flush the self.categoriesWords to disk
 	def __FlushWords__(self):
@@ -131,14 +161,19 @@ class TrainingCrawler:
 	# flush the categoriesSeeds to disk
 	def __FlushSeeds__(self):
 		
-		text = json.dumps(self.trainingCrawlerCluster.categoriesSeeds)
-			
-		fileName = self.trainingSetPath + 'Seeds.txt'
-			
-		with open(fileName, 'w') as f:	
-			f.write(text)
+		try:
+			self.trainingCrawlerCluster.categoriesSeedsLock.acquire()
 		
+			text = json.dumps(self.trainingCrawlerCluster.categoriesSeeds)
 			
+			fileName = self.trainingSetPath + 'Seeds.txt'
+			
+			with open(fileName, 'w') as f:	
+				f.write(text)
+				
+		finally:
+			self.trainingCrawlerCluster.categoriesSeedsLock.release()	
+	
 	# populate the category words one by one
 	def __ScrapeUrlCallBack__(self, category, item):
 						
@@ -160,6 +195,7 @@ class TrainingCrawler:
 		finally:
 			self.trainingCrawlerCluster.categoriesWordsLock.release()
 	
+			
 	# scrape the url 
 	def __ScrapeUrl__(self):
 		
@@ -195,14 +231,37 @@ class TrainingCrawler:
 		
 	def __CrawlSeed__(self):
 		
+		
 		for host in self.newsHosts:
 			
 			domain = GetDomainName(host.url)
 			algo = self.trainingCrawlerCluster.hostToCrawlerDict[domain]
 			algo.Crawl(CrawlingOption.TrainingCrawl, domain, self.__SeedingCallBack__, self.categories)
-		
+			
+		# will be editted later
+		with open(self.trainingSetPath + '1.csv', 'rb') as f:
+			reader = csv.reader(f)
+			for row in reader:
+				if row[0].lower() == 'categoryoption.business':
+					urls = row[1].split('\n')
+					
+					for url in urls:
+						logging.info('%s.__CrawlSeed__: crawling %s for seeds in category %s', self.className, url, row[0])
+						spider = self.trainingCrawlerCluster.hostToScraperDict(url)
+						spider.SetUrls([url])
+						spider.SetCategory(row[0])
+						spider.SetScraperCallBack(self.__SeedingsCallBack__)
+						
+						settings = get_project_settings()
+						crawler = Crawler(settings)
+						crawler.signals.connect(self.__SpiderQuitEvent__, signal=signals.spider_closed)
+						crawler.configure()
+						crawler.crawl(spider)
+						crawler.start()
+						self.spiderCounter += 1
+			# the script will block here until the spider_closed signal was sent
+			reactor.run()
 		self.__FlushSeeds__()
-		
 				
 	def Crawl(self):
 		

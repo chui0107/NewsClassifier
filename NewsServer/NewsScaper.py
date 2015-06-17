@@ -4,12 +4,16 @@ from scrapy.item import Item, Field
 from scrapy.http import Request, HtmlResponse
 from scrapy.spider import Spider
 from scrapy.selector import Selector
+from scrapy.contrib.linkextractors.lxmlhtml import LxmlLinkExtractor
 from scrapy.contrib.linkextractors import LinkExtractor
+from scrapy.contrib.spiders import Rule
 from lxml.html.builder import TITLE, BODY
 from NewsBase import CategoryOption
+from Util import GetDomainName
 import sys
+import re
 
-class articlePage(Item):
+class Article(Item):
 	articleTitle = Field()
 	articleBody = Field()
 
@@ -26,7 +30,7 @@ class NewsScraper(Spider):
 	
 	def __GetItem__(self, response):
 		
-		item = articlePage()
+		item = Article()
 		item['articleTitle'] = None	
 		item['articleBody'] = None
 		
@@ -43,7 +47,7 @@ class NewsScraper(Spider):
 				item['articleBody'] = None
 				logging.exception('%s.__GetItem__: exception', self.name)
 		else:
-			logging.info('%s.__GetItem__: reponse is not of type HtmlResponse', self.name)
+			logging.info('%s.__GetItem__: response is not of type HtmlResponse', self.name)
 					
 		return item
 	
@@ -53,9 +57,7 @@ class NewsScraper(Spider):
 		item = self.__GetItem__(response)
 		
 		# delegate callback to the crawler
-		self.scraperCallBack(self.category, item)
-		
-		# r.extend(self._extract_requests(response))
+		self.scraperCallBack(item)
 		
 	def SetUrls(self, urls):
 		self.start_urls = urls
@@ -124,13 +126,6 @@ class NYTimesScraper(NewsScraper):
 		
 		return (title, body)
 			
-	def _extract_requests(self, response):
-		r = []
-		if isinstance(response, HtmlResponse):
-			links = self.link_extractor.extract_links(response)
-			r.extend(Request(x.url, callback=self.parse) for x in links)
-		return r
-
 	'''
 	def _set_new_cookies(self, page, response):
 		cookies = []
@@ -145,3 +140,51 @@ class NYTimesScraper(NewsScraper):
 		return [Request(self.url, callback=self.parse, dont_filter=True)]
 		
 	'''
+
+# the crawler is used to crawler links on a page to feed seeds.txt	
+class WebPageScraper(NewsScraper):
+	
+	name = 'WebPageScraper'
+		
+	def __init__(self, **kw):
+		super(WebPageScraper, self).__init__(**kw)
+		
+		# r.extend(self._extract_requests(response))
+		
+	def __ExtractLinks__(self, response):
+		
+		if isinstance(response, HtmlResponse):
+			try:
+				domain = GetDomainName(self.start_urls[0])
+				# regex = '^https?://www.' + domain + '/.*-n(\d+)$'
+				# regex = '^https?://www.' + domain + '/.*$'				
+				links = LxmlLinkExtractor(allow=(), allow_domains=(domain,), restrict_xpaths=('//body',)).extract_links(response)
+				
+				articleLinks = []
+				for link in links:
+					# extract only links with text longer than 30, usually its an article
+					if(len(link.text) > 30):
+						articleLinks.append(link.url)
+				return articleLinks
+			except:
+				logging.exception('%s.__ExtractLinks__: exception')
+			
+		logging.info('%s.__ExtractLinks__: non HtmlReponse response', self.name)
+		raise TypeError("Response type is not of HtmlResponse")
+		
+	def __GetItem__(self, response):
+		
+		item = None
+		if isinstance(response, HtmlResponse):
+			
+			try:
+				
+				links = self.__ExtractLinks__(response)
+				item = (self.category, GetDomainName(self.start_urls[0]), links)
+				
+			except:
+				logging.exception('%s.__GetItem__: exception', self.name)
+		else:
+			logging.info('%s.__GetItem__: response is not of type HtmlResponse', self.name)
+					
+		return item	

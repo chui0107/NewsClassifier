@@ -1,0 +1,298 @@
+Particle Media,url silos,Notes:,Y (21),odp (17),
+Adult,,,/Society & Culture/Pornography Issues/,Adult,
+Arts,"http://www.huffingtonpost.com/arts/
+https://www.reddit.com/r/Art/
+http://www.nytimes.com/pages/arts/
+http://www.theguardian.com/artanddesign
+http://www.reuters.com/news/entertainment/arts
+",* reddit.com/r/art is mostly static images with no context/article. Should not be crawled.,Arts & Entertainment,Arts,
+book,"http://www.theguardian.com/books
+http://www.usatoday.com/life/books/
+
+",,,,newly added
+CategoryOption.business,"http://www.nbcnews.com/business
+http://www.huffingtonpost.com/business/
+http://www.huffingtonpost.com/small-business/
+http://www.nytimes.com/pages/business/
+http://www.theguardian.com/us/business
+http://www.theguardian.com/business/series/us-small-business
+http://www.theguardian.com/business/diversity-and-equality
+http://www.theguardian.com/us/sustainable-business
+https://news.google.com/news/section?topic=b
+http://www.forbes.com/entrepreneurs/
+http://www.forbes.com/business/
+http://www.bbc.com/news/business
+http://www.washingtonpost.com/capital_business/
+http://washpost.bloomberg.com/market-news/
+http://www.washingtonpost.com/business/on-small-business/
+http://individual.com/newsdesk.php?industry=business
+http://time.com/business/
+http://abcnews.go.com/business",* individual.com/ source does not include a articles. It should not be included ,Business,Business,
+Education,"http://www.huffingtonpost.com/education/
+http://www.huffingtonpost.com/college/
+http://www.bbc.com/education
+http://college.usatoday.com/
+http://www.bloomberg.com/business-schools
+http://www.bloomberg.com/game-plan
+http://abcnews.go.com/topics/news/education","*http://www.bbc.co.uk/education offers teaching materials for different grade levels, but does not contain articles
+*http://www.bloomberg.com/game-plan is more about career advice than education",Education,Reference/Education/, /Science/Educational_Resources/...
+Entertainment,"http://www.foxnews.com/entertainment
+http://www.cnn.com/entertainment
+http://news.yahoo.com/comics/
+http://www.huffingtonpost.com/entertainment/
+http://www.huffingtonpost.com/comedy/
+http://www.huffingtonpost.com/celebrity/
+http://www.huffingtonpost.com/tv/
+https://www.reddit.com/r/Music/
+https://www.reddit.com/r/funny/
+https://www.reddit.com/r/aww/
+https://www.reddit.com/r/movies/
+https://www.reddit.com/r/Jokes/
+https://www.reddit.com/r/television/
+http://www.nytimes.com/section/magazine
+http://www.theguardian.com/crosswords
+http://www.theguardian.com/music
+http://www.theguardian.com/stage
+http://www.theguardian.com/tv-and-radio
+http://www.theguardian.com/film
+https://news.google.com/news/section?topic=e
+http://www.bbc.com/tv
+http://www.bbc.com/music
+http://www.washingtonpost.com/entertainment/
+http://www.usatoday.com/life/
+http://www.ew.com/
+http://time.com/entertainment/
+http://www.reuters.com/news/entertainment
+http://abcnews.go.com/entertainment
+http://abcnews.go.com/topics/entertainment
+","*reddit links dont always include articles. 
+*https://www.reddit.com/r/television/ has good links 
+*http://www.nytimes.com/section/magazine fits better in society, not entertainment",Arts & Entertainment,"Arts, /Business/Arts_and_Entertainment/, ...",
+Fashion,"http://www.nytimes.com/pages/fashion
+http://www.theguardian.com/fashion
+http://www.bloomberg.com/news/design
+http://www.instyle.com/
+",*http://www.bloomberg.com/news/design fits better in arts,Apparel, /Arts & Entertainment/Fashion/,/Arts/Design/Fashion/
+"Finance
+(rename as Economy?)","http://money.cnn.com/
+http://www.huffingtonpost.com/money/
+http://www.theguardian.com/business/economics
+http://www.forbes.com/investing/
+http://www.realclearmarkets.com/
+http://individual.com/newsdesk.php?industry=finance
+http://www.usatoday.com/money/
+http://www.bloomberg.com/personal-finance
+http://www.bloomberg.com/small-business
+http://www.bloomberg.com/markets
+http://time.com/money
+http://www.reuters.com/finance/markets
+http://www.reuters.com/finance/personal-finance
+http://www.reuters.com/finance/personal-finance/retirement
+","*http://www.bloomberg.com/small-business
+fits better under business",Finance,,
+Food,"http://www.huffingtonpost.com/taste/
+https://www.reddit.com/r/food/
+http://www.nytimes.com/pages/dining
+http://www.theguardian.com/lifeandstyle/food-and-drink
+http://www.bbc.com/food/
+http://www.bbcgoodfood.com/
+http://www.cookinglight.com/
+http://www.myrecipes.com/
+http://www.foodandwine.com/
+http://abcnews.go.com/gma/recipes/
+",,Food & Cooking,/Shopping/Food/, /Recreation/Food/
+Games,"https://www.reddit.com/r/gaming/
+http://www.theguardian.com/technology/games
+",*caution with reddit/r/gaming some content is not suitable,,Games,
+Health,"http://www.foxnews.com/health
+http://www.cnn.com/health
+http://www.nbcnews.com/health
+http://news.yahoo.com/health/
+http://www.huffingtonpost.com/healthy-living/
+http://www.nytimes.com/pages/health
+http://www.theguardian.com/lifeandstyle/health-and-wellbeing
+https://news.google.com/news/section?topic=m
+http://www.bbc.com/news/health
+http://individual.com/newsdesk.php?industry=healthcare
+http://time.com/health/
+http://www.reuters.com/news/health
+http://abcnews.go.com/health
+http://abcnews.go.com/topics/news/healthcare
+http://abcnews.go.com/topics/lifestyle/health
+",,Health,Health,
+Hobbies,,,Hobbies & Personal Activities,,
+Home & Garden,"http://www.huffingtonpost.com/home/
+https://www.reddit.com/r/DIY/
+http://www.theguardian.com/lifeandstyle/home-and-garden
+",,Home & Garden,Home,
+Humanities,"ttp://www.huffingtonpost.com/religion/
+http://www.theguardian.com/us/culture
+http://time.com/history/
+http://abcnews.go.com/topics/news/history
+",,Humanities,,
+Lifestyle,"http://www.foxnews.com/leisure
+http://www.huffingtonpost.com/style/
+http://www.nytimes.com/pages/style/
+http://www.theguardian.com/lifeandstyle
+http://www.forbes.com/lifestyle/
+http://www.washingtonpost.com/lifestyle/
+http://www.reuters.com/news/lifestyle
+http://abcnews.go.com/lifestyle
+http://abcnews.go.com/topics/lifestyle/
+",,,,newly added
+Kids & Teens,"http://www.huffingtonpost.com/teen/
+http://abcnews.go.com/topics/news/children
+",,,Kids_and_Teens,
+Nature,"http://www.huffingtonpost.com/green/
+http://www.weather.com/
+http://www.theguardian.com/us/environment
+http://www.theguardian.com/environment/pollution
+http://www.theguardian.com/environment/energy
+http://www.theguardian.com/environment/wildlife
+http://www.theguardian.com/environment/climate-change
+http://www.bbc.com/earth
+http://www.bbc.com/earth/uk
+http://individual.com/newsdesk.php?industry=environmental
+http://individual.com/newsdesk.php?industry=energy
+http://www.reuters.com/news/environment
+http://www.wunderground.com/climate/evidence.asp
+http://www.wunderground.com/climate/extremes.asp
+http://abcnews.go.com/topics/news/energy
+http://abcnews.go.com/topics/news/environment
+",,Nature & Environment,/Science/Environment/, /Business/Environment/
+Politics,"http://www.foxnews.com/politics
+http://www.cnn.com/politics
+http://www.nbcnews.com/politics
+https://www.yahoo.com/politics
+http://www.huffingtonpost.com/politics/
+https://www.reddit.com/r/politics/
+http://www.nytimes.com/pages/politics/
+http://www.nytimes.com/pages/opinion/
+http://www.theguardian.com/us/commentisfree
+http://www.forbes.com/opinion/
+http://www.realclearpolitics.com/
+http://www.washingtonpost.com/politics/
+http://www.washingtonpost.com/opinions/
+http://www.usatoday.com/news/elections/
+http://www.usatoday.com/opinion/
+http://www.bloombergview.com/
+http://www.bloomberg.com/politics/
+http://time.com/politics/
+http://www.reuters.com/politics
+http://blogs.reuters.com/us/
+http://blogs.reuters.com/great-debate/
+http://abcnews.go.com/politics
+http://abcnews.go.com/topics/news/whitehouse
+http://abcnews.go.com/topics/news/elections
+","*Opinion/op-ed sections are not always about politics , they can cover a range of topics
+*blogs.reuters.com/us is not exclusively about politics",Politics & Government,/Society/Politics,
+Real Estate,"http://www.nytimes.com/pages/realestate
+http://www.washingtonpost.com/realestate/
+",,Real Estate,/Business/Real_Estate/,
+Relationships,"http://www.huffingtonpost.com/parents/
+http://www.huffingtonpost.com/divorce/
+http://www.theguardian.com/lifeandstyle/family
+http://www.theguardian.com/lifeandstyle/love-and-sex
+http://time.com/parents/
+",,Family & Relationships,/Society/Relationships/,
+Science,"http://www.foxnews.com/science
+http://www.nbcnews.com/science
+http://news.yahoo.com/science/
+http://www.huffingtonpost.com/science/
+https://www.reddit.com/r/space/
+http://www.nytimes.com/pages/science/
+http://www.theguardian.com/science
+https://news.google.com/news/section?topic=snc
+http://time.com/science/
+http://www.reuters.com/news/science
+http://abcnews.go.com/topics/news/science
+",,Science,Science, Computers
+Shopping,"http://shop.bbc.com/
+http://www.washingtonpost.com/classifieds/
+http://www.usatodayclassifieds.com/
+",,,Shopping,
+Society,"http://www.huffingtonpost.com/religion/
+http://www.huffingtonpost.com/crime/
+http://www.huffingtonpost.com/weddings/
+http://www.huffingtonpost.com/50/
+http://www.huffingtonpost.com/own/
+http://www.huffingtonpost.com/black-voices/
+http://www.huffingtonpost.com/latino-voices/
+http://www.huffingtonpost.com/gay-voices/
+http://www.bbc.com/culture
+http://www.bloomberg.com/news/culture
+",,Society & Culture,Society,
+Sports,"http://www.foxnews.com/sports
+http://bleacherreport.com/
+http://www.nbcsports.com/
+http://www.huffingtonpost.com/sports/
+https://www.reddit.com/r/sports/
+http://www.nytimes.com/pages/sports
+http://www.theguardian.com/football
+http://www.theguardian.com/us/sport
+https://news.google.com/news/section?topic=s
+http://www.realclearsports.com/
+http://www.bbc.com/sport
+http://www.washingtonpost.com/sports/
+http://individual.com/newsdesk.php?industry=sports
+http://www.usatoday.com/sports/
+http://www.si.com/
+http://time.com/sports/
+http://www.reuters.com/news/sports
+http://blogs.reuters.com/faithworld/
+http://abcnews.go.com/sports
+http://abc7news.com/sports/",,Sports & Recreation,Recreation, Sports
+Technology,"http://www.foxnews.com/tech
+http://www.cnn.com/tech
+http://www.nbcnews.com/tech
+https://www.yahoo.com/tech/
+http://www.huffingtonpost.com/tech/
+http://www.nytimes.com/pages/technology
+http://www.theguardian.com/us/technology
+https://news.google.com/news/section?topic=tc
+http://www.forbes.com/technology/
+http://www.bbc.com/news/technology
+http://www.washingtonpost.com/business/technology/
+http://individual.com/newsdesk.php?industry=computer
+http://individual.com/newsdesk.php?industry=telecom
+http://www.usatoday.com/tech/
+http://www.bloomberg.com/news/industries
+http://www.bloomberg.com/technology
+http://time.com/tech/
+http://www.reuters.com/news/technology
+http://abcnews.go.com/technology
+http://abcnews.go.com/topics/business/technology
+","*http://individual.com/newsdesk.php?industry=telecom
+does not include any articles
+*http://individual.com/newsdesk.php?industry=computer does not include any articles",Technology & Electronics,Computers,
+Transportation,"http://www.bbc.com/autos
+http://www.washingtonpost.com/cars/
+http://individual.com/newsdesk.php?industry=transportation
+http://www.reuters.com/subjects/autos
+",,Transportation,/Transportation_and_Logistics/, /Business/Automotive/
+Travel,"http://www.foxnews.com/travel
+http://www.huffingtonpost.com/travel/
+http://www.nytimes.com/pages/travel/
+http://www.theguardian.com/travel
+http://www.bbc.com/travel/
+http://www.bbc.com/travel/
+http://www.washingtonpost.com/goingoutguide
+http://www.usatoday.com/travel/
+http://www.travelandleisure.com/
+http://abcnews.go.com/travel
+","*http://www.washingtonpost.com/goingoutguide
+goes better with lifestyle",Travel & Tourism,/Recreation/Travel/,
+Weather,"http://www.bbc.com/weather/
+http://www.bbc.com/weather/
+http://www.usatoday.com/weather/
+http://www.accuweather.com/
+http://www.wunderground.com/
+http://abcnews.go.com/topics/news/weather
+",,,,newly added
+women,"http://www.theguardian.com/lifeandstyle/women
+http://www.huffingtonpost.com/women/
+",,,,newly added
+U.S. News,,,,News,
+World News,,,,Reference,
+,,,,Regional,
+,,,,World,
