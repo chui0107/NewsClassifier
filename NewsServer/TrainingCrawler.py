@@ -123,7 +123,7 @@ class TrainingCrawler:
 			if domain not in self.trainingCrawlerCluster.categoriesSeeds[categoryString]:
 				self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain] = []
 			
-			for url in urls:	
+			for url in urls:
 				self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain].append(url)
 
 		finally:
@@ -256,7 +256,8 @@ class TrainingCrawler:
 				return
 				
 			for row in reader:
-				if row[0].lower() == 'categoryoption.business' or row[0].lower() == 'categoryoption.sports' or row[0].lower() == 'categoryoption.technology':
+				
+				if row[0].lower() == 'categoryoption.sports' or row[0].lower() == 'categoryoption.technology' or row[0].lower() == 'categoryoption.business': 
 					
 					try:
 						urls = row[1].split('\n')

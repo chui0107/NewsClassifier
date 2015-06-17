@@ -153,24 +153,24 @@ class PageLinkScraper(NewsScraper):
 		
 	def __ExtractLinks__(self, response):
 		
+		articleLinks = []
 		if isinstance(response, HtmlResponse):
 			try:
-				domain = GetDomainName(self.start_urls[0])
+				domain = GetDomainName(response.url)
 				# regex = '^https?://www.' + domain + '/.*-n(\d+)$'
 				# regex = '^https?://www.' + domain + '/.*$'				
 				links = LxmlLinkExtractor(allow=(), allow_domains=(domain,), restrict_xpaths=('//body',)).extract_links(response)
 				
-				articleLinks = []
+				# print links
 				for link in links:
 					# extract only links with text longer than 30, usually its an article
 					if(len(link.text) > 30):
 						articleLinks.append(link.url)
-				return articleLinks
 			except:
 				logging.exception('%s.__ExtractLinks__: exception')
 			
 		logging.info('%s.__ExtractLinks__: non HtmlReponse response', self.name)
-		raise TypeError("Response type is not of HtmlResponse")
+		return articleLinks
 		
 	def __GetItem__(self, response):
 		
