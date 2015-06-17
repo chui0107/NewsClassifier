@@ -222,7 +222,7 @@ http://www.huffingtonpost.com/gay-voices/
 http://www.bbc.com/culture
 http://www.bloomberg.com/news/culture
 ",,Society & Culture,Society,
-Sports,"http://www.foxnews.com/sports
+CategoryOption.sports,"http://www.foxnews.com/sports
 http://bleacherreport.com/
 http://www.nbcsports.com/
 http://www.huffingtonpost.com/sports/
@@ -242,7 +242,7 @@ http://www.reuters.com/news/sports
 http://blogs.reuters.com/faithworld/
 http://abcnews.go.com/sports
 http://abc7news.com/sports/",,Sports & Recreation,Recreation, Sports
-Technology,"http://www.foxnews.com/tech
+CategoryOption.technology,"http://www.foxnews.com/tech
 http://www.cnn.com/tech
 http://www.nbcnews.com/tech
 https://www.yahoo.com/tech/
