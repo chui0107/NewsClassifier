@@ -4,12 +4,11 @@ import threading
 from twisted.internet import reactor
 from scrapy.crawler import Crawler
 from scrapy import log, signals
-from NewsScaper import NYTimesScraper, USATodayScraper, PageLinkScraper
+from NewsScaper import NYTimesScraper, USATodayScraper, PageLinkScraper, NewsScraper
 from scrapy.utils.project import get_project_settings
 from CrawlingAlgorithm import CrawlingOption
 from NewsBase import CategoryOption
 from CrawlingAlgorithm import NYtimesCrawlingAlgorithm, USATodayCrawlingAlgorithm
-from Util import GetDomainName
 import csv
 import os
 
@@ -36,17 +35,17 @@ class TrainingCrawlerCluster:
 			raise ValueError('Unknown domain')
 	
 	# fake a dictionary and create a new spider in each call
-	def hostToScraperDict(self, urls):
-		assert len(urls) > 0, 'empty urls'
+	def hostToScraperDict(self, domain):
+		assert domain != None, 'empty domain'
 		
-		if len(urls) == 1:
-			domain = GetDomainName(urls[0]).lower()
-			if domain.lower() == 'usatoday.com':
-				return USATodayScraper()
-			elif domain.lower() == 'nytimes.com':
-				return NYTimesScraper()
-				
-		raise NotImplemented()
+		# domain = GetDomainName(url)
+		
+		if domain == 'usatoday.com':
+			return USATodayScraper()
+		elif domain == 'nytimes.com':
+			return NYTimesScraper()
+		
+		return NewsScraper()  
 			
 class TrainingCrawler:
 	
@@ -69,22 +68,29 @@ class TrainingCrawler:
 		self.trainingSetPath = trainingSetPath 
 		
 		# control variables
-		self.enableCrawlSeeds = True
+		self.enableCrawlSeeds = False
 		self.enableCrawlPage = False
 		
 		self.spiderCounter = 0
+		
+		self.settings = get_project_settings()
+		self.settings.set('DOWNLOAD_TIMEOUT', 30, 'cmdline')
+		self.settings.set('DOWNLOAD_DELAY', 0.25, 'cmdline')
+		self.settings.set('TELNETCONSOLE_ENABLED', False, 'cmdline')
+		# self.settings.set('WEBSERVICE_ENABLED', False, 'cmdline')
+									
 		
 		self.__FillSeeds__()
 		
 	# event is fire when a spider is quit
 	def __SpiderQuitEvent__(self):
-		logging.info('a spider just quit')
+		logging.info('%s.__SpiderQuitEvent__: a spider just quit', self.className)
 		self.spiderCounter -= 1
 		print '%d spider remaining' % self.spiderCounter
 		# all crawls are finished
 		if self.spiderCounter == 0:
 			self.__FlushWords__()
-			logging.info('stopped the reactor')
+			logging.info('%s.__SpiderQuitEvent__: stopped the reactor', self.className)
 			reactor.stop()
 	
 	# save the url seeds to a file
@@ -118,7 +124,7 @@ class TrainingCrawler:
 			
 			fileName = self.trainingSetPath + 'Words.txt'
 			
-			logging.info('flushing to file %s', fileName)
+			logging.info('%s.__FlushWords__: flushing to file %s', self.className, fileName)
 			
 			text = json.dumps(self.trainingCrawlerCluster.categoriesWords)
 						
@@ -138,7 +144,7 @@ class TrainingCrawler:
 		
 		with open(fileName, 'r') as f:
 			
-			logging.info('loading the seeds from %s', fileName)
+			logging.info('%s.__FillSeed__: loading the seeds from %s', self.className, fileName)
 								
 			try:
 				
@@ -171,18 +177,26 @@ class TrainingCrawler:
 			self.trainingCrawlerCluster.categoriesSeedsLock.release()	
 	
 	# populate the category words one by one
-	def __ScrapeUrlCallBack__(self, category, item):
+	def __ScrapeUrlCallBack__(self, item):
+		
+		if item == None:
+			return
 						
 		try:
 			self.trainingCrawlerCluster.categoriesWordsLock.acquire()
 			
-			title = item.get('articleTitle')
+			category = item[0]
 			
-			body = item.get('articleBody')
+			title = item[1]
+			
+			body = item[2]
 			
 			# Note they are lists
 			title = title[0] if len(title) else ''
 			body = body[0] if len(body) else ''
+			
+			if title == '' and body == '':
+				return 
 			
 			self.trainingCrawlerCluster.categoriesWords[category].append((title, body))				
 				
@@ -206,32 +220,32 @@ class TrainingCrawler:
 				try:
 					urls = self.trainingCrawlerCluster.categoriesSeeds[category][domain]
 							
-					spider = self.trainingCrawlerCluster.hostToScraperDict([domain])
+					spider = self.trainingCrawlerCluster.hostToScraperDict(domain)
 					spider.SetUrls(urls)
 					spider.SetCategory(category)
 					spider.SetScraperCallBack(self.__ScrapeUrlCallBack__)
 					
-					settings = get_project_settings()
-					crawler = Crawler(settings)
+					crawler = Crawler(self.settings)
 					crawler.signals.connect(self.__SpiderQuitEvent__, signal=signals.spider_closed)
 					crawler.configure()
 					crawler.crawl(spider)
 					crawler.start()
 					self.spiderCounter += 1
-								
+					
 				except:
-					logging.exception('%s.__GetItem__: exception', self.name)
+					logging.exception('%s.__GetItem__: exception', self.className)
+					return
 				
 		# the script will block here until the spider_closed signal was sent
 		reactor.run()
 				
 	def __CrawlSeed__(self):
 		
-		'''
+
 		for host in self.newsHosts:
 			algo = self.trainingCrawlerCluster.hostToCrawlerDict[host.domain]
 			algo.Crawl(CrawlingOption.TrainingCrawl, host.domain, self.__SeedingCallBack__, self.categories)
-		'''
+
 		
 		# will be edit later		
 		with open(self.trainingSetPath + 'Seeds.csv', 'r') as f:
@@ -239,7 +253,7 @@ class TrainingCrawler:
 			try:
 				reader = csv.reader(f)
 			except:
-				logging.exception('%s.__CrawlSeed__: exception', self.name)
+				logging.exception('%s.__CrawlSeed__: exception', self.className)
 				return
 			
 			# log.start()	
@@ -255,9 +269,7 @@ class TrainingCrawler:
 						spider.SetCategory(row[0])
 						spider.SetScraperCallBack(self.__SeedingCallBack__)
 					
-						settings = get_project_settings()
-						settings.set('DOWNLOAD_TIMEOUT', 30, 'cmdline')
-						crawler = Crawler(settings)
+						crawler = Crawler(self.settings)
 						crawler.signals.connect(self.__SpiderQuitEvent__, signal=signals.spider_closed)
 						crawler.configure()
 						crawler.crawl(spider)

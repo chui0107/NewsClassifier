@@ -1,5 +1,4 @@
 import logging
-import abc
 from scrapy.item import Item, Field
 from scrapy.http import Request, HtmlResponse
 from scrapy.spider import Spider
@@ -14,10 +13,6 @@ import sys
 import re
 from scrapy.http.response.text import TextResponse
 
-class Article(Item):
-	articleTitle = Field()
-	articleBody = Field()
-
 # the pass in urls have to follow the same pattern to be scraped
 class NewsScraper(Spider):
 	name = 'NewsScraper'
@@ -25,32 +20,22 @@ class NewsScraper(Spider):
 	def __init__(self, **kw):
 		super(NewsScraper, self).__init__(**kw)
 		
-	@abc.abstractmethod			
 	def __ExtractPath__(self, response):
 		pass
 	
 	def __GetItem__(self, response):
-		
-		item = Article()
-		item['articleTitle'] = None	
-		item['articleBody'] = None
-		
+				
+		newsTuple = None
 		if isinstance(response, HtmlResponse):
 			
 			try:
-				
 				newsTuple = self.__ExtractPath__(response)
-				item['articleTitle'] = newsTuple[0] 
-				item['articleBody'] = newsTuple[1]
-		
 			except:
-				item['articleTitle'] = None	
-				item['articleBody'] = None
 				logging.exception('%s.__GetItem__: exception', self.name)
 		else:
 			logging.info('%s.__GetItem__: response is not of type HtmlResponse', self.name)
-					
-		return item
+			
+		return newsTuple
 	
 	# this is the default callback function when scraping finishes, it gets called
 	def parse(self, response):
@@ -88,7 +73,7 @@ class USATodayScraper(NewsScraper):
 			title = Selector(response).xpath('//h1[@itemprop="headline"]/text()').extract()
 			body = Selector(response).xpath('//div[@itemprop="articleBody"]/p/text()').extract()
 			
-			return (title, body)
+			return (self.category, title, body)
 		
 		logging.error('%s.__ExtractPath__: unknown category: %s', self.name, self.category)
 		raise ValueError('unknown category')
@@ -116,8 +101,8 @@ class NYTimesScraper(NewsScraper):
 			logging.error('%s.__ExtractPath__: unknown category: %s', self.name, self.category)
 			raise ValueError('unknown category')
 		
-		return (title, body)
-			
+		return (self.category, title, body)
+				
 # the crawler is used to crawler links on a page to feed seeds.txt	
 class PageLinkScraper(NewsScraper):
 	
