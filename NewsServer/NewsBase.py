@@ -26,7 +26,8 @@ class MessageQueue:
 		self.rankerQLock = threading.Lock()
 					
 class NewsHost:
-	def __init__(self, url, apiKey, docLink):
+	def __init__(self, url, apiKey, docLink, domain):
 		self.url = url
 		self.apiKey = apiKey
 		self.docLink = docLink
+		self.domain = domain

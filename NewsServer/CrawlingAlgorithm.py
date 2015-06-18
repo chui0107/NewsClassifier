@@ -4,17 +4,18 @@ import time
 from enum import Enum
 import logging
 from NewsBase import CategoryOption
-from distutils.tests.setuptools_build_ext import if_dl
 
 class CrawlingOption(Enum):
 	TrainingCrawl = 1
 	RunningCrawl = 2
 	
+# this class is used to crawl website's api	
 class CrawlingAlgorithm:
 	def __init__(self, newsHost):
 		self.url = newsHost.url
 		self.apiKey = newsHost.apiKey
 		self.docLink = newsHost.docLink
+		self.domain = newsHost.domain
 		self.visitedUrl = set()
 	
 	@abc.abstractmethod
@@ -76,12 +77,15 @@ class NYtimesCrawlingAlgorithm(CrawlingAlgorithm):
 			logging.error('%s.__Crawl__: docs doesn\'t exist', self.className)
 			return;
 		
+		urls = []
 		for doc in response['response']['docs']:
 			url = doc.get('web_url')
 			if url and url not in self.visitedUrl:
-				newsTuple = (category, domain, url)
-				action(newsTuple)
+				urls.append(url)
 				self.visitedUrl.add(url)
+				
+		action((category, domain, urls))
+				
 	
 	def __CategoryToCategoryString__(self, categoryOption):
 		if categoryOption == CategoryOption.business:
@@ -183,14 +187,15 @@ class USATodayCrawlingAlgorithm(CrawlingAlgorithm):
 		except:
 			logging.exception('%s.__Crawl__: exception')
 			return
-
+		
+		urls = []
 		# pact news into a tuple
 		for doc in response.get('stories'):
 			url = doc.get('link')
 			if url and url not in self.visitedUrl:
-				newsTuple = (category, domain, url)
-				action(newsTuple)
+				urls.append(url)
 				self.visitedUrl.add(url)
+		action((category, domain, urls))
 		
 	def Crawl(self, crawlingOption, domain, action, categories=[]):
 		

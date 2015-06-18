@@ -11,6 +11,7 @@ from NewsBase import CategoryOption
 from CrawlingAlgorithm import NYtimesCrawlingAlgorithm, USATodayCrawlingAlgorithm
 from Util import GetDomainName
 import csv
+import os
 
 class TrainingCrawlerCluster:
 	import collections
@@ -19,7 +20,7 @@ class TrainingCrawlerCluster:
 	hostToCrawlerDict = collections.defaultdict()
 	hostToScraperDict = collections.defaultdict()
 	
-	categoriesSeeds = collections.defaultdict(lambda:{})
+	categoriesSeeds = collections.defaultdict()
 	categoriesSeedsLock = threading.Lock()
 	
 	categoriesWords = collections.defaultdict(lambda:[])
@@ -27,11 +28,10 @@ class TrainingCrawlerCluster:
 		
 	# create specific crawler according to its domain
 	def CreateCrawler(self, host):
-		domain = GetDomainName(host.url).lower()
-		if domain == 'api.usatoday.com':
-			self.hostToCrawlerDict[domain] = USATodayCrawlingAlgorithm(host)
-		elif domain == 'api.nytimes.com':
-			self.hostToCrawlerDict[domain] = NYtimesCrawlingAlgorithm(host)
+		if host.domain == 'usatoday.com':
+			self.hostToCrawlerDict[host.domain] = USATodayCrawlingAlgorithm(host)
+		elif host.domain == 'nytimes.com':
+			self.hostToCrawlerDict[host.domain] = NYtimesCrawlingAlgorithm(host)
 		else:
 			raise ValueError('Unknown domain')
 	
@@ -41,14 +41,12 @@ class TrainingCrawlerCluster:
 		
 		if len(urls) == 1:
 			domain = GetDomainName(urls[0]).lower()
-			if domain.lower() == 'api.usatoday.com':
+			if domain.lower() == 'usatoday.com':
 				return USATodayScraper()
-			elif domain.lower() == 'api.nytimes.com':
+			elif domain.lower() == 'nytimes.com':
 				return NYTimesScraper()
-			else:
-				raise NotImplemented()
-		
-		return PageLinkScraper()
+				
+		raise NotImplemented()
 			
 class TrainingCrawler:
 	
@@ -76,14 +74,13 @@ class TrainingCrawler:
 		
 		self.spiderCounter = 0
 		
-		if self.enableCrawlSeeds == False:
-			self.__FillSeeds__()
-	
+		self.__FillSeeds__()
+		
 	# event is fire when a spider is quit
 	def __SpiderQuitEvent__(self):
 		logging.info('a spider just quit')
 		self.spiderCounter -= 1
-		
+		print '%d spider remaining' % self.spiderCounter
 		# all crawls are finished
 		if self.spiderCounter == 0:
 			self.__FlushWords__()
@@ -92,44 +89,27 @@ class TrainingCrawler:
 	
 	# save the url seeds to a file
 	def __SeedingCallBack__(self, newsTuple):
-		category = newsTuple[0]
-		domain = newsTuple[1]
-		url = newsTuple[2]
+		assert newsTuple != None and len(newsTuple) == 3, 'newsTuple invalid'
 		
-		categoryString = str(category)
-	
-		try:
-			self.trainingCrawlerCluster.categoriesSeedsLock.acquire()
-		
-			if domain not in self.trainingCrawlerCluster.categoriesSeeds[categoryString]:
-				self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain] = []
-		
-			self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain].append(url)
-		
-		finally:
-			self.trainingCrawlerCluster.categoriesSeedsLock.release()	
-		
-	# used by the scraper to crawl a section page. xxx.com/business
-	def __SeedingsCallBack__(self, newsTuple):
 		category = newsTuple[0]
 		domain = newsTuple[1]
 		urls = newsTuple[2]
-		
 		categoryString = str(category)
-		
 		try:
 			self.trainingCrawlerCluster.categoriesSeedsLock.acquire()
+			
+			if categoryString not in self.trainingCrawlerCluster.categoriesSeeds:
+				self.trainingCrawlerCluster.categoriesSeeds[categoryString] = {}
 			
 			if domain not in self.trainingCrawlerCluster.categoriesSeeds[categoryString]:
 				self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain] = []
 			
 			for url in urls:
 				self.trainingCrawlerCluster.categoriesSeeds[categoryString][domain].append(url)
-
+			
 		finally:
-			self.trainingCrawlerCluster.categoriesSeedsLock.release()	
-
-	
+			self.trainingCrawlerCluster.categoriesSeedsLock.release()
+		
 	# flush the self.categoriesWords to disk
 	def __FlushWords__(self):
 		
@@ -152,7 +132,10 @@ class TrainingCrawler:
 	# fill the starting urls for the scraper
 	def __FillSeeds__(self):
 
-		fileName = self.trainingSetPath + 'Seeds.txt' 
+		fileName = self.trainingSetPath + 'Seeds.txt'
+		if os.path.exists(fileName) == False:
+			return
+		
 		with open(fileName, 'r') as f:
 			
 			logging.info('loading the seeds from %s', fileName)
@@ -167,9 +150,16 @@ class TrainingCrawler:
 	# flush the categoriesSeeds to disk
 	def __FlushSeeds__(self):
 		
+		logging.info('%s.__FlushSeeds__: Flushing seeds to disk', self.className)
 		try:
 			self.trainingCrawlerCluster.categoriesSeedsLock.acquire()
-		
+			
+			
+			# get unique urls
+			for category in self.trainingCrawlerCluster.categoriesSeeds:
+				for domain in self.trainingCrawlerCluster.categoriesSeeds[category]:
+					self.trainingCrawlerCluster.categoriesSeeds[category][domain] = list(set(self.trainingCrawlerCluster.categoriesSeeds[category][domain]))
+				
 			text = json.dumps(self.trainingCrawlerCluster.categoriesSeeds)
 			
 			fileName = self.trainingSetPath + 'Seeds.txt'
@@ -234,40 +224,39 @@ class TrainingCrawler:
 				
 		# the script will block here until the spider_closed signal was sent
 		reactor.run()
-		
+				
 	def __CrawlSeed__(self):
-		
 		
 		'''
 		for host in self.newsHosts:
-			
-			domain = GetDomainName(host.url)
-			algo = self.trainingCrawlerCluster.hostToCrawlerDict[domain]
-			algo.Crawl(CrawlingOption.TrainingCrawl, domain, self.__SeedingCallBack__, self.categories)
+			algo = self.trainingCrawlerCluster.hostToCrawlerDict[host.domain]
+			algo.Crawl(CrawlingOption.TrainingCrawl, host.domain, self.__SeedingCallBack__, self.categories)
 		'''
-			
-		# will be editted later
-		with open(self.trainingSetPath + 'Seeds.csv', 'rb') as f:
+		
+		# will be edit later		
+		with open(self.trainingSetPath + 'Seeds.csv', 'r') as f:
 			
 			try:
 				reader = csv.reader(f)
 			except:
 				logging.exception('%s.__CrawlSeed__: exception', self.name)
 				return
-				
+			
+			# log.start()	
 			for row in reader:
-				
-				if row[0].lower() == 'categoryoption.sports' or row[0].lower() == 'categoryoption.technology' or row[0].lower() == 'categoryoption.business': 
+				if row[0].lower() == 'categoryoption.technology' or row[0].lower() == 'categoryoption.sports' or row[0].lower() == 'categoryoption.business':  
 					
 					try:
 						urls = row[1].split('\n')
 						logging.info('%s.__CrawlSeed__: crawling for seeds in category %s', self.className, row[0])
-						spider = self.trainingCrawlerCluster.hostToScraperDict(urls)
+						spider = PageLinkScraper()
+						
 						spider.SetUrls(urls)
 						spider.SetCategory(row[0])
-						spider.SetScraperCallBack(self.__SeedingsCallBack__)
+						spider.SetScraperCallBack(self.__SeedingCallBack__)
 					
 						settings = get_project_settings()
+						settings.set('DOWNLOAD_TIMEOUT', 30, 'cmdline')
 						crawler = Crawler(settings)
 						crawler.signals.connect(self.__SpiderQuitEvent__, signal=signals.spider_closed)
 						crawler.configure()
@@ -276,7 +265,9 @@ class TrainingCrawler:
 						self.spiderCounter += 1
 						
 					except:
-						logging.exception('%s.__CrawlSeed__: exception', self.name)
+						logging.exception('%s.__CrawlSeed__: exception', self.className)
+						self.spiderCounter = 0
+						return
 						
 			# the script will block here until the spider_closed signal was sent
 			reactor.run()

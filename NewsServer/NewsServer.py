@@ -89,9 +89,9 @@ def main():
 	
 	newsHosts = []
 	
-	usaTodayHost = NewsHost('http://api.usatoday.com/open/articles', 'b5vr5crn4xryqh2p4ppbybjv', 'http://developer.usatoday.com/docs/read/articles')
+	usaTodayHost = NewsHost('http://api.usatoday.com/open/articles', 'b5vr5crn4xryqh2p4ppbybjv', 'http://developer.usatoday.com/docs/read/articles', 'usatoday.com')
 	newsHosts.append(usaTodayHost)
-	nyTimesHost = NewsHost('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2')
+	nyTimesHost = NewsHost('http://api.nytimes.com/svc/search/v2/articlesearch', 'f01308a5d8db23dd5722469be240a909:14:67324777', 'http://developer.nytimes.com/docs/read/article_search_api_v2', 'nytimes.com')
 	newsHosts.append(nyTimesHost)
 	
 	logging.info('Running traningSetCrawler')
